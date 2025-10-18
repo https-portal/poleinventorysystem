@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Generate Inventory Reports</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+      max-width: 1100px;
+      margin: 30px auto;
+      padding: 20px;
+      background: #f9fafb;
+    }
+    h1 {
+      color: #1e3a8a;
+      margin-bottom: 20px;
+    }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+    input, button {
+      padding: 8px 14px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 0.95rem;
+    }
+    button {
+      background: linear-gradient(45deg, #2563eb, #1e40af);
+      color: #fff;
+      cursor: pointer;
+      border: none;
+      font-weight: 600;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background: #2563eb;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    tbody tr:nth-child(even) {
+      background: #f1f5f9;
+    }
+  </style>
+</head>
+<body>
+  <h1>📊 Inventory Report</h1>
+  <div class="filters">
+    <label>From: <input type="date" id="startDate"></label>
+    <label>To: <input type="date" id="endDate"></label>
+    <button id="generateBtn">Generate Report</button>
+    <button id="exportBtn">Export to Excel</button>
+    <button id="backBtn">Back to Dashboard</button>
+  </div>
+
+  <table id="reportTable">
+    <thead>
+      <tr>
+        <th>Code</th>
+        <th>Description</th>
+        <th>Beginning Stock</th>
+        <th>Total Produced</th>
+        <th>Total Withdrawn</th>
+        <th>Current Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="6" style="text-align:center;color:#888;">Select date range and click Generate Report</td></tr>
+    </tbody>
+  </table>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAzMFxfrYC8rHVgX3NPts6DXGMIsyoKeeY",
+      authDomain: "bikerental-71d2f.firebaseapp.com",
+      databaseURL: "https://bikerental-71d2f-default-rtdb.firebaseio.com",
+      projectId: "bikerental-71d2f",
+      storageBucket: "bikerental-71d2f.firebasestorage.app",
+      messagingSenderId: "349527647193",
+      appId: "1:349527647193:web:8db12034619c8e423b2fc8",
+      measurementId: "G-NWMX3S2S6B"
+    };
+
+    async function loadFirebase() {
+      return new Promise((resolve, reject) => {
+        if (window.firebase && window.firebase.apps.length) return resolve(window.firebase);
+        const s1 = document.createElement('script');
+        s1.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
+        s1.onload = () => {
+          const s2 = document.createElement('script');
+          s2.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js';
+          s2.onload = () => {
+            firebase.initializeApp(firebaseConfig);
+            resolve(firebase);
+          };
+          s2.onerror = reject;
+          document.head.appendChild(s2);
+        };
+        s1.onerror = reject;
+        document.head.appendChild(s1);
+      });
+    }
+
+    document.getElementById('generateBtn').onclick = async () => {
+      const start = document.getElementById('startDate').value;
+      const end = document.getElementById('endDate').value;
+      if (!start || !end) return alert("Please select both start and end dates.");
+
+      await loadFirebase();
+      const db = firebase.database();
+
+      const invSnap = await db.ref('inventory_items').once('value');
+      const prodSnap = await db.ref('daily_production').once('value');
+      const withSnap = await db.ref('withdrawals').once('value');
+
+      const inventory = invSnap.val() || {};
+      const production = prodSnap.val() || {};
+      const withdrawals = withSnap.val() || {};
+
+      const report = {};
+
+      // Initialize all products
+      for (const [code, item] of Object.entries(inventory)) {
+        report[code] = {
+          description: item.description || '-',
+          beginning: item.qty || 0,
+          produced: 0,
+          withdrawn: 0,
+          current: item.qty || 0
+        };
+      }
+
+      // Sum production in range
+      for (const [date, entries] of Object.entries(production)) {
+        if (date >= start && date <= end) {
+          for (const key in entries) {
+            const p = entries[key];
+            if (report[p.code]) report[p.code].produced += parseInt(p.qty) || 0;
+          }
+        }
+      }
+
+      // Sum withdrawals in range
+      for (const [key, w] of Object.entries(withdrawals)) {
+        if (w.date >= start && w.date <= end) {
+          if (report[w.code]) report[w.code].withdrawn += parseInt(w.qty) || 0;
+        }
+      }
+
+      // Compute beginning (approximation)
+      for (const code in report) {
+        const r = report[code];
+        r.beginning = r.current - r.produced + r.withdrawn;
+      }
+
+      const tbody = document.querySelector('#reportTable tbody');
+      tbody.innerHTML = '';
+
+      for (const [code, r] of Object.entries(report)) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${code}</td>
+          <td>${r.description}</td>
+          <td>${r.beginning}</td>
+          <td>${r.produced}</td>
+          <td>${r.withdrawn}</td>
+          <td><b>${r.current}</b></td>
+        `;
+        tbody.appendChild(tr);
+      }
+    };
+
+    document.getElementById('exportBtn').onclick = () => {
+      const table = document.getElementById('reportTable');
+      const rows = Array.from(table.querySelectorAll('tr')).map(tr => 
+        Array.from(tr.querySelectorAll('th,td')).map(td => td.textContent)
+      );
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      XLSX.utils.book_append_sheet(wb, ws, 'Inventory Report');
+      XLSX.writeFile(wb, 'Inventory_Report.xlsx');
+    };
+
+    document.getElementById('backBtn').onclick = () => {
+      window.location.href = 'index.html';
+    };
+  </script>
+</body>
+</html>
