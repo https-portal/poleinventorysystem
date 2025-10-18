@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Daily Withdrawal</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    body {
+      font-family: Segoe UI, Roboto, Arial;
+      max-width: 800px;
+      margin: 24px auto;
+      padding: 16px;
+    }
+    h1, h2 { margin-bottom: 12px; }
+    .row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    input, select {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+    }
+    button {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: none;
+      background: #d00000;
+      color: #fff;
+      cursor: pointer;
+    }
+    .small { font-size: 0.85rem; color: #666; }
+    .badge {
+      background: #ffecec;
+      color: #d00000;
+      padding: 4px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 6px;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+    th {
+      background: #f5f5f5;
+    }
+  </style>
+</head>
+<body>
+  <h1><span class="badge">INV</span> Daily Withdrawal</h1>
+
+  <div class="row">
+    <select id="code" style="width:180px">
+      <option value="">Select product</option>
+    </select>
+    <input id="qty" placeholder="Quantity to withdraw" type="number" style="width:120px" />
+  </div>
+
+  <div class="row">
+    <input id="client" placeholder="Client name" style="width:180px" />
+    <input id="date" type="date" style="width:180px" />
+    <button id="withdraw">Withdraw</button>
+    <button id="showdashboard">Dashboard</button>
+  </div>
+
+  <div id="msg" class="small"></div>
+
+  <hr style="margin:20px 0">
+
+  <h2>Withdrawal History</h2>
+  <div class="row">
+    <input id="filterDate" type="date" />
+    <select id="filterCode" style="width:180px">
+      <option value="">All products</option>
+    </select>
+    <button id="filterBtn">Filter</button>
+    <button id="clearFilter">Clear</button>
+  </div>
+
+  <table id="historyTable">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Code</th>
+        <th>Description</th>
+        <th>Client</th>
+        <th>Quantity</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h3>Generate Withdrawal Summary Report</h3>
+  <div class="row">
+    <input id="startDate" type="date" />
+    <input id="endDate" type="date" />
+    <input id="clientFilter" placeholder="Optional client name" style="width:180px" />
+    <button id="exportBtn">Export to Excel</button>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAzMFxfrYC8rHVgX3NPts6DXGMIsyoKeeY",
+      authDomain: "bikerental-71d2f.firebaseapp.com",
+      databaseURL: "https://bikerental-71d2f-default-rtdb.firebaseio.com",
+      projectId: "bikerental-71d2f",
+      storageBucket: "bikerental-71d2f.firebasestorage.app",
+      messagingSenderId: "349527647193",
+      appId: "1:349527647193:web:8db12034619c8e423b2fc8",
+      measurementId: "G-NWMX3S2S6B"
+    };
+
+    // ✅ Load Firebase
+    function loadFirebase() {
+      return new Promise((resolve, reject) => {
+        if (window.firebase && window.firebase.apps.length) return resolve(window.firebase);
+        const s1 = document.createElement('script');
+        s1.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
+        s1.onload = () => {
+          const s2 = document.createElement('script');
+          s2.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js';
+          s2.onload = () => {
+            firebase.initializeApp(firebaseConfig);
+            resolve(firebase);
+          };
+          s2.onerror = reject;
+          document.head.appendChild(s2);
+        };
+        s1.onerror = reject;
+        document.head.appendChild(s1);
+      });
+    }
+
+    // ✅ Load product list into dropdowns
+    async function loadProducts() {
+      await loadFirebase();
+      const ref = firebase.database().ref('inventory_items');
+      const snap = await ref.once('value');
+      const selectMain = document.getElementById('code');
+      const selectFilter = document.getElementById('filterCode');
+      selectMain.innerHTML = '<option value="">Select product</option>';
+      selectFilter.innerHTML = '<option value="">All products</option>';
+
+      snap.forEach(item => {
+        const data = item.val();
+        const code = data.code || item.key;
+        const option1 = document.createElement('option');
+        const option2 = document.createElement('option');
+        option1.value = item.key;
+        option2.value = item.key;
+        option1.textContent = code;
+        option2.textContent = code;
+        selectMain.appendChild(option1);
+        selectFilter.appendChild(option2);
+      });
+    }
+
+    // ✅ Handle Withdraw button
+    document.getElementById('withdraw').onclick = async () => {
+      const code = document.getElementById('code').value;
+      const qty = parseInt(document.getElementById('qty').value, 10);
+      const client = document.getElementById('client').value.trim();
+      const date = document.getElementById('date').value || new Date().toISOString().split('T')[0];
+
+      if (!code || isNaN(qty) || qty <= 0 || !client) {
+        document.getElementById('msg').textContent = 'Enter valid product, client, and quantity.';
+        return;
+      }
+
+      document.getElementById('msg').textContent = 'Processing...';
+
+      await loadFirebase();
+      const ref = firebase.database().ref('inventory_items/' + code);
+      const snap = await ref.once('value');
+      const data = snap.val() || {};
+      const desc = data.description || '-';
+      const stock = data.qty || 0;
+
+      if (stock < qty) {
+        document.getElementById('msg').textContent = `Not enough stock. Current: ${stock}`;
+        return;
+      }
+
+      const newStock = stock - qty;
+      await ref.update({ qty: newStock });
+
+      // ✅ Save to withdrawals with key based on code + unique timestamp
+      const key = `${code}_${Date.now()}`;
+      await firebase.database().ref('withdrawals/' + key).set({
+        code,
+        description: desc,
+        qty,
+        client,
+        date,
+        timestamp: new Date().toISOString()
+      });
+
+      document.getElementById('msg').textContent = `✅ Withdrawal recorded. Remaining stock: ${newStock}`;
+      document.getElementById('qty').value = '';
+      document.getElementById('client').value = '';
+      loadHistory(); // refresh table
+    };
+
+    // ✅ Load withdrawal history
+    async function loadHistory(filterDate = '', filterCode = '') {
+      await loadFirebase();
+      const ref = firebase.database().ref('withdrawals');
+      const snap = await ref.once('value');
+      const tbody = document.querySelector('#historyTable tbody');
+      tbody.innerHTML = '';
+
+      const records = [];
+      snap.forEach(item => {
+        const data = item.val();
+        records.push(data);
+      });
+
+      const filtered = records.filter(r => {
+        const byDate = !filterDate || r.date === filterDate;
+        const byCode = !filterCode || r.code === filterCode;
+        return byDate && byCode;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;">No withdrawal records found</td></tr>';
+        return;
+      }
+
+      filtered.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+      filtered.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${r.date}</td>
+          <td>${r.code}</td>
+          <td>${r.description || '-'}</td>
+          <td>${r.client || '-'}</td>
+          <td>${r.qty}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    document.getElementById('filterBtn').onclick = () => {
+      const date = document.getElementById('filterDate').value;
+      const code = document.getElementById('filterCode').value;
+      loadHistory(date, code);
+    };
+
+    document.getElementById('clearFilter').onclick = () => {
+      document.getElementById('filterDate').value = '';
+      document.getElementById('filterCode').value = '';
+      loadHistory();
+    };
+
+    // ✅ Initialize page
+    loadProducts().then(() => loadHistory());
+
+    // ✅ Export Withdrawal Summary to Excel
+    document.getElementById('exportBtn').onclick = async () => {
+      const start = document.getElementById('startDate').value;
+      const end = document.getElementById('endDate').value;
+      const clientFilter = document.getElementById('clientFilter').value.trim().toLowerCase();
+
+      if (!start || !end) {
+        alert('Please select both start and end dates.');
+        return;
+      }
+
+      await loadFirebase();
+      const ref = firebase.database().ref('withdrawals');
+      const snap = await ref.once('value');
+      const records = [];
+
+      snap.forEach(item => {
+        const data = item.val();
+        const date = new Date(data.date);
+        if (date >= new Date(start) && date <= new Date(end)) {
+          if (!clientFilter || (data.client && data.client.toLowerCase().includes(clientFilter))) {
+            records.push(data);
+          }
+        }
+      });
+
+      if (records.length === 0) {
+        alert('No records found for the selected range.');
+        return;
+      }
+
+      const worksheetData = [
+        ['Date', 'Code', 'Description', 'Client', 'Quantity'],
+        ...records.map(r => [r.date, r.code, r.description, r.client, r.qty])
+      ];
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+      XLSX.utils.book_append_sheet(wb, ws, 'Withdrawals');
+
+      XLSX.writeFile(wb, `Withdrawal_Summary_${start}_to_${end}.xlsx`);
+    };
+
+ document.getElementById('showdashboard').onclick = () => {
+    window.location.href = "index.html";
+};
+
+
+
+  </script>
+</body>
+</html>

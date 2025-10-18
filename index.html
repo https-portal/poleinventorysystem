@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Inventory Dashboard</title>
+
+<style>
+/* === COLOR THEME === */
+:root {
+  --primary: #2563eb;
+  --primary-light: #3b82f6;
+  --accent: #1e40af;
+  --success: #16a34a;
+  --warning: #f59e0b;
+  --danger: #dc2626;
+  --text-dark: #1f2937;
+  --text-light: #6b7280;
+  --bg: #f8fafc;
+  --white: #ffffff;
+  --border: #e5e7eb;
+  --radius: 12px;
+}
+
+/* === GLOBAL === */
+body {
+  font-family: "Inter", "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  margin: 0;
+  padding: 0;
+  color: var(--text-dark);
+  display: flex;
+  min-height: 100vh;
+}
+
+/* === SIDEBAR === */
+.sidebar {
+  width: 230px;
+  background: linear-gradient(180deg, var(--primary), var(--primary-light));
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  color: var(--white);
+  box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+}
+.sidebar h2 {
+  font-size: 1.4rem;
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+.sidebar button {
+  width: 100%;
+  background: var(--white);
+  color: var(--primary);
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius);
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-align: left;
+}
+.sidebar button:hover {
+  background: #eff6ff;
+  transform: translateX(3px);
+}
+
+/* === MAIN CONTENT === */
+.main {
+  flex: 1;
+  margin-left: 250px; /* space for sidebar */
+  padding: 40px 50px;
+}
+.container {
+  max-width: 1250px;
+  margin: auto;
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.05);
+  padding: 40px 50px;
+}
+
+/* === HEADER === */
+h1 {
+  font-size: 2.1rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--primary);
+  font-weight: 700;
+}
+.badge {
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: var(--white);
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 0.9rem;
+  box-shadow: 0 3px 10px rgba(37,99,235,0.3);
+}
+
+/* === MESSAGE === */
+#msg {
+  font-size: 0.95rem;
+  color: var(--text-light);
+  margin-bottom: 15px;
+  font-style: italic;
+}
+
+/* === TABLE === */
+.table-container {
+  overflow-x: auto;
+  border-radius: var(--radius);
+}
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.95rem;
+  background: var(--white);
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+thead {
+  background: linear-gradient(90deg, var(--primary), var(--primary-light));
+  color: var(--white);
+}
+th, td {
+  padding: 14px 18px;
+  text-align: left;
+}
+th { font-weight: 600; font-size: 0.95rem; letter-spacing: 0.3px; }
+tbody tr { border-bottom: 1px solid var(--border); transition: background 0.2s, transform 0.15s; }
+tbody tr:nth-child(even) { background: #f9fafb; }
+tbody tr:hover { background: #eef2ff; transform: scale(1.002); }
+.badge-stock { border-radius: 20px; padding: 6px 12px; color: #fff; display: inline-block; min-width: 60px; }
+.badge-high { background: var(--success); }
+.badge-low { background: var(--warning); }
+
+/* === MODAL === */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.45);
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  backdrop-filter: blur(4px);
+}
+.modal-content {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 30px;
+  width: 95%;
+  max-width: 600px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+  animation: pop 0.3s ease;
+}
+@keyframes pop {
+  from {transform: translateY(-15px); opacity: 0;}
+  to {transform: translateY(0); opacity: 1;}
+}
+.modal-header {
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: var(--white);
+  padding: 16px 20px;
+  border-radius: var(--radius);
+  font-size: 1.1rem;
+  margin-bottom: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-close {
+  cursor: pointer;
+  font-size: 22px;
+  color: #fff;
+  transition: 0.2s;
+}
+.modal-close:hover { color: #fee2e2; }
+
+/* === FORM INPUTS === */
+input, select {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: var(--radius);
+  width: 100%;
+  font-size: 0.95rem;
+  transition: 0.2s;
+}
+input:focus, select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+  outline: none;
+}
+
+/* === PREVIEW TABLE === */
+table.preview-table { width: 100%; border: 1px solid var(--border); margin-top: 10px; border-radius: var(--radius); overflow: hidden; }
+table.preview-table th { background: #eff6ff; color: var(--primary); font-weight: 600; }
+table.preview-table td { font-size: 0.9rem; padding: 10px; }
+table.preview-table tbody tr:hover { background: #f1f5f9; }
+
+/* === SCROLLBAR === */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* === RESPONSIVE === */
+@media (max-width: 800px) {
+  .sidebar { position: relative; width: 100%; flex-direction: row; justify-content: space-around; }
+  .main { margin-left: 0; padding: 20px; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- === SIDEBAR === -->
+<div class="sidebar">
+  <h2>Inventory System</h2>
+  <button onclick="location.href='withdrawal.html'">📦 Daily Withdrawal</button>
+  <button onclick="location.href='production.html'">🏭 Daily Production</button>
+  <button onclick="location.href='available-stock.html'">📊 Cured Poles</button>
+
+  <button id="manageBtn">⚙️ Manage Inventory</button>
+</div>
+
+<!-- === MAIN CONTENT === -->
+<div class="main">
+  <div class="container">
+    <h1><span class="badge">INV</span> Inventory Dashboard</h1>
+    <div id="msg"></div>
+    <div class="table-container">
+      <table id="tbl">
+        <thead>
+          <tr>
+            <th>Product Code</th>
+            <th>Description</th>
+            <th>Current Stock</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- === MODAL === -->
+<div id="manageModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span>Manage Inventory</span>
+      <span class="modal-close">&times;</span>
+    </div>
+
+    <div class="row"><select id="selectProduct"><option value="">Select product</option></select></div>
+    <div class="row"><input id="editCode" placeholder="Product Code"></div>
+    <div class="row"><input id="editDesc" placeholder="Description"></div>
+    <div class="row"><input id="editQty" type="number" placeholder="Quantity"></div>
+    <div class="row"><button id="updateBtn">💾 Update</button></div>
+    <hr>
+    <div class="row"><input type="file" id="fileInput" accept=".xlsx,.xls"></div>
+    <div class="row">
+      <table class="preview-table" id="previewTable">
+        <thead><tr><th>Code</th><th>Description</th><th>Quantity</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="row">
+      <button id="saveUpload">📤 Save Upload</button>
+      <button id="downloadBtn" class="ghost">⬇️ Download Inventory</button>
+    </div>
+  </div>
+</div>
+
+<!-- === SCRIPTS === -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<script>
+/* === JS SAME LOGIC === */
+const firebaseConfig = {
+  apiKey: "AIzaSyAzMFxfrYC8rHVgX3NPts6DXGMIsyoKeeY",
+  authDomain: "bikerental-71d2f.firebaseapp.com",
+  databaseURL: "https://bikerental-71d2f-default-rtdb.firebaseio.com",
+  projectId: "bikerental-71d2f",
+  storageBucket: "bikerental-71d2f.firebasestorage.app",
+  messagingSenderId: "349527647193",
+  appId: "1:349527647193:web:8db12034619c8e423b2fc8",
+  measurementId: "G-NWMX3S2S6B"
+};
+
+function loadFirebase(){
+  return new Promise((resolve,reject)=>{
+    if(window.firebase&&window.firebase.apps&&window.firebase.apps.length)return resolve(firebase);
+    const s1=document.createElement('script');s1.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
+    s1.onload=()=>{
+      const s2=document.createElement('script');s2.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js';
+      s2.onload=()=>{firebase.initializeApp(firebaseConfig);resolve(firebase);}
+      s2.onerror=reject;document.head.appendChild(s2);
+    }
+    s1.onerror=reject;document.head.appendChild(s1);
+  });
+}
+function sanitizeId(s){return(s||'').replace(/[^a-zA-Z0-9_\-]/g,'_');}
+let products={},uploadData=[];
+
+async function renderTable(){
+  msg.textContent='Loading products...';
+  await loadFirebase();
+  const tbody=document.querySelector('#tbl tbody');tbody.innerHTML='';
+  const select=selectProduct;select.innerHTML='<option value="">Select product</option>';
+  const snapshot=await firebase.database().ref('inventory_items').once('value');
+  const data=snapshot.val()||{};products={};
+  const items=Object.entries(data).map(([id,i])=>({id,code:i.code||'',description:i.description||'',qty:i.qty??0}))
+    .sort((a,b)=>a.code.localeCompare(b.code));
+
+  for(const item of items){
+    products[item.id]=item;
+    const tr=document.createElement('tr');
+    const badgeClass=item.qty<10?'badge-low':'badge-high';
+    tr.innerHTML=`<td>${item.code}</td><td>${item.description}</td><td><span class="badge-stock ${badgeClass}">${item.qty}</span></td>`;
+    tbody.appendChild(tr);
+    const opt=document.createElement('option');opt.value=item.id;opt.textContent=item.code;select.appendChild(opt);
+  }
+  msg.textContent=`✅ Loaded ${items.length} products.`;
+}
+
+/* === MODAL HANDLING === */
+const manageModal=document.getElementById('manageModal');
+manageBtn.onclick=()=>manageModal.style.display='flex';
+document.querySelector('.modal-close').onclick=()=>manageModal.style.display='none';
+window.onclick=e=>{if(e.target===manageModal)manageModal.style.display='none';};
+
+/* === UPDATE PRODUCT === */
+selectProduct.addEventListener('change',function(){
+  const id=this.value;if(!id){editCode.value='';editDesc.value='';editQty.value='';return;}
+  const p=products[id];editCode.value=p.code;editDesc.value=p.description;editQty.value=p.qty;
+});
+updateBtn.addEventListener('click',async()=>{
+  const id=selectProduct.value;if(!id)return alert('Select a product');
+  const newCode=editCode.value.trim(),newDesc=editDesc.value.trim(),newQty=parseInt(editQty.value)||0;
+  if(!newCode||!newDesc)return alert('Code & description cannot be empty');
+  await loadFirebase();
+  const ref=firebase.database().ref('inventory_items/'+sanitizeId(id));
+  await ref.update({code:newCode,description:newDesc,qty:newQty});
+  msg.textContent=`✅ Updated ${newCode}`;
+  renderTable();
+});
+
+/* === UPLOAD FILE === */
+fileInput.addEventListener('change',async(e)=>{
+  const file=e.target.files[0];if(!file)return;
+  const data=await file.arrayBuffer();
+  const workbook=XLSX.read(data);
+  const sheet=workbook.Sheets[workbook.SheetNames[0]];
+  uploadData=XLSX.utils.sheet_to_json(sheet,{header:['code','description','qty'],range:1});
+  renderPreview();
+});
+function renderPreview(){
+  const tbody=document.querySelector('#previewTable tbody');tbody.innerHTML='';
+  uploadData.forEach((r,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td contenteditable data-field="code" data-index="${i}">${r.code||''}</td>
+                  <td contenteditable data-field="description" data-index="${i}">${r.description||''}</td>
+                  <td contenteditable data-field="qty" data-index="${i}">${r.qty||0}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+document.querySelector('#previewTable tbody').addEventListener('input',e=>{
+  const idx=e.target.dataset.index,field=e.target.dataset.field;
+  if(idx!==undefined&&field){uploadData[idx][field]=field==='qty'?parseInt(e.target.textContent)||0:e.target.textContent;}
+});
+saveUpload.addEventListener('click',async()=>{
+  await loadFirebase();
+  const updates={};
+  uploadData.forEach(r=>{
+    const p=Object.values(products).find(p=>p.code===r.code);
+    const id=p?p.id:sanitizeId(r.code);
+    updates[id]={code:r.code,description:r.description||'',qty:r.qty||0};
+  });
+  if(!Object.keys(updates).length)return alert('No products found to save');
+  await firebase.database().ref('inventory_items').update(updates);
+  msg.textContent='✅ Uploaded inventory successfully';
+  renderTable();
+});
+downloadBtn.addEventListener('click',async()=>{
+  await loadFirebase();
+  const snapshot=await firebase.database().ref('inventory_items').once('value');
+  const data=snapshot.val()||{};
+  const exportData=Object.values(data).map(i=>({Code:i.code,Description:i.description,Quantity:i.qty}));
+  if(!exportData.length)return alert('No products to export');
+  const ws=XLSX.utils.json_to_sheet(exportData);
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Inventory');
+  XLSX.writeFile(wb,'Inventory.xlsx');
+});
+renderTable();
+</script>
+</body>
+</html>

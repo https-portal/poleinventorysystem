@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Available Cured Stock</title>
+  <style>
+    body {
+      font-family: Segoe UI, Roboto, Arial;
+      max-width: 900px;
+      margin: 24px auto;
+      padding: 16px;
+    }
+    h1 { color: #0a8f00; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 6px;
+      text-align: left;
+    }
+    th {
+      background: #f0f0f0;
+    }
+    input, button, select {
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      margin-right: 6px;
+    }
+    button {
+      background: #0a8f00;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    #controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>Available Cured Stock</h1>
+  <div id="controls">
+    <label>Select Date: <input type="date" id="datePicker"></label>
+    <button id="showBtn">Show Cured Poles</button>
+
+    <!-- NEW: filter for export only -->
+    <label>Export Product Codes:</label>
+    <select id="codeSelect" multiple size="4" style="min-width:150px;"></select>
+
+    <button id="exportBtn">Export Selected</button>
+  </div>
+
+  <table id="stockTable">
+    <thead>
+      <tr>
+        <th>Code</th>
+        <th>Description</th>
+        <th>Current Stock</th>
+        <th>Produced (14 days ago)</th>
+        <th>Cured Total</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAzMFxfrYC8rHVgX3NPts6DXGMIsyoKeeY",
+      authDomain: "bikerental-71d2f.firebaseapp.com",
+      databaseURL: "https://bikerental-71d2f-default-rtdb.firebaseio.com",
+      projectId: "bikerental-71d2f",
+      storageBucket: "bikerental-71d2f.firebasestorage.app",
+      messagingSenderId: "349527647193",
+      appId: "1:349527647193:web:8db12034619c8e423b2fc8",
+      measurementId: "G-NWMX3S2S6B"
+    };
+
+    let cachedInventory = {};
+    let cachedTableData = [];
+
+    async function loadFirebase() {
+      return new Promise((resolve, reject) => {
+        if (window.firebase && window.firebase.apps.length) return resolve(window.firebase);
+        const s1 = document.createElement('script');
+        s1.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
+        s1.onload = () => {
+          const s2 = document.createElement('script');
+          s2.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js';
+          s2.onload = () => {
+            firebase.initializeApp(firebaseConfig);
+            resolve(firebase);
+          };
+          s2.onerror = reject;
+          document.head.appendChild(s2);
+        };
+        s1.onerror = reject;
+        document.head.appendChild(s1);
+      });
+    }
+
+    async function loadInventoryCodes() {
+      await loadFirebase();
+      const db = firebase.database();
+      const invRef = db.ref("inventory_items");
+      const invSnap = await invRef.once("value");
+      cachedInventory = invSnap.val() || {};
+
+      const select = document.getElementById("codeSelect");
+      select.innerHTML = "";
+      Object.keys(cachedInventory).forEach(code => {
+        const opt = document.createElement("option");
+        opt.value = code;
+        opt.textContent = code;
+        select.appendChild(opt);
+      });
+    }
+
+    async function showCuredStock(dateInput) {
+      await loadFirebase();
+
+      const db = firebase.database();
+      const prodRef = db.ref("daily_production");
+
+      const selectedDate = new Date(dateInput);
+      const target14 = new Date(dateInput);
+      target14.setDate(target14.getDate() - 14);
+      const prodSnap = await prodRef.once("value");
+      const allProduction = prodSnap.val() || {};
+
+      const tbody = document.querySelector("#stockTable tbody");
+      tbody.innerHTML = "";
+      cachedTableData = [];
+
+      // Always show all inventory items
+      for (const [code, item] of Object.entries(cachedInventory)) {
+        const desc = item.description || "-";
+        const currentStock = item.qty || 0;
+
+        let produced14DaysAgo = 0;
+        let producedLess14Days = 0;
+
+        for (const dateKey in allProduction) {
+          const prodDate = new Date(dateKey);
+          const diffDays = (selectedDate - prodDate) / (1000 * 60 * 60 * 24);
+
+          const dailyProd = allProduction[dateKey];
+          for (const key in dailyProd) {
+            if (dailyProd[key].code === code) {
+              const qty = parseInt(dailyProd[key].qty) || 0;
+              if (diffDays >= 14) produced14DaysAgo += qty;
+              else if (diffDays > 0 && diffDays < 14) producedLess14Days += qty;
+            }
+          }
+        }
+
+        let curedTotal = currentStock - producedLess14Days;
+        if (curedTotal < 0) curedTotal = 0;
+
+        cachedTableData.push({ code, desc, currentStock, produced14DaysAgo, curedTotal });
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${code}</td>
+          <td>${desc}</td>
+          <td>${currentStock}</td>
+          <td>${produced14DaysAgo}</td>
+          <td><b>${curedTotal}</b></td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    // Export CSV function (only selected codes)
+    function exportToCSV() {
+      if (!cachedTableData.length) {
+        alert("Please show data first before exporting.");
+        return;
+      }
+
+      const selectedCodes = Array.from(document.getElementById("codeSelect").selectedOptions).map(opt => opt.value);
+      if (!selectedCodes.length) {
+        alert("Please select at least one product code to export.");
+        return;
+      }
+
+      const filteredData = cachedTableData.filter(row => selectedCodes.includes(row.code));
+      if (!filteredData.length) {
+        alert("No matching product codes found in the table.");
+        return;
+      }
+
+      let csv = "Code,Description,Current Stock,Produced (14 days ago),Cured Total\n";
+      filteredData.forEach(row => {
+        csv += `${row.code},${row.desc},${row.currentStock},${row.produced14DaysAgo},${row.curedTotal}\n`;
+      });
+
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "CuredStockReport_Selected.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById("showBtn").onclick = () => {
+      const date = document.getElementById("datePicker").value;
+      if (!date) return alert("Please select a date first.");
+      showCuredStock(date);
+    };
+
+    document.getElementById("exportBtn").onclick = exportToCSV;
+
+    // Load product codes for selection
+    loadInventoryCodes();
+  </script>
+</body>
+</html>
