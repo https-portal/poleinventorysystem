@@ -48,11 +48,13 @@
       border-radius: 8px;
       overflow: hidden;
     }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 10px;
-      text-align: left;
-    }
+   th, td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center; /* ✅ Center horizontally */
+  vertical-align: middle; /* ✅ Center vertically */
+}
+
     th {
       background: #2563eb;
       color: #fff;
@@ -66,9 +68,24 @@
 </head>
 <body>
   <h1>📊 Inventory Report</h1>
+
+<div style="margin-bottom: 15px;">
+  <input 
+    type="text" 
+    id="searchBar" 
+    placeholder="🔍 Search by Code or Description..." 
+    style="width: 40%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 0.95rem;"
+  >
+</div>
+
+
+
+
   <div class="filters">
     <label>From: <input type="date" id="startDate"></label>
     <label>To: <input type="date" id="endDate"></label>
+    
+
     <button id="generateBtn">Generate Report</button>
     <button id="exportBtn">Export to Excel</button>
     <button id="backBtn">Back to Dashboard</button>
@@ -205,6 +222,30 @@
     document.getElementById('backBtn').onclick = () => {
       window.location.href = 'index.html';
     };
+
+
+// 🔍 Filter report table after it's generated
+function searchReportTable() {
+  const input = document.getElementById('searchBar');
+  const filter = input.value.toLowerCase();
+  const table = document.getElementById('reportTable');
+  const tr = table.getElementsByTagName('tr');
+
+  for (let i = 1; i < tr.length; i++) { // skip header row
+    const tdCode = tr[i].getElementsByTagName('td')[0];
+    const tdDesc = tr[i].getElementsByTagName('td')[1];
+    if (tdCode && tdDesc) {
+      const codeText = tdCode.textContent.toLowerCase();
+      const descText = tdDesc.textContent.toLowerCase();
+      tr[i].style.display = (codeText.includes(filter) || descText.includes(filter)) ? '' : 'none';
+    }
+  }
+}
+
+// Listen when user types in the search bar
+document.getElementById('searchBar').addEventListener('keyup', searchReportTable);
+
+
   </script>
 </body>
 </html>
