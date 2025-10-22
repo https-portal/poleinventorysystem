@@ -300,13 +300,15 @@
     </div>
     <table id="historyTable" style="margin-top:10px;">
       <thead>
-        <tr>
-          <th>Date</th>
-          <th>Code</th>
-          <th>Description</th>
-          <th>Quantity</th>
-        </tr>
-      </thead>
+  <tr>
+    <th>Date</th>
+    <th>Code</th>
+    <th>Description</th>
+    <th>Qty</th>
+    <th>Total Produce</th>
+  </tr>
+</thead>
+
       <tbody>
         <tr>
           <td colspan="4" style="text-align:center;color:#999;">Select a date range and/or product to view records</td>
@@ -466,7 +468,7 @@
       loadHistory();
     };
 
-    document.getElementById('generateReport').onclick = async () => {
+document.getElementById('generateReport').onclick = async () => {
   const start = document.getElementById('historyStartDate').value;
   const end = document.getElementById('historyEndDate').value;
   const filterCode = document.getElementById('filterCode').value;
@@ -491,7 +493,7 @@
             date,
             code: data.code,
             description: data.description,
-            qty: data.qty
+            qty: parseInt(data.qty) || 0
           });
         }
       });
@@ -503,23 +505,52 @@
     return;
   }
 
-  const summary = {};
-  all.forEach(r => {
-    if (!summary[r.code]) {
-      summary[r.code] = { description: r.description, total: 0 };
-    }
-    summary[r.code].total += parseInt(r.qty) || 0;
+  // ✅ Sort by code then by date
+  all.sort((a, b) => {
+    if (a.code < b.code) return -1;
+    if (a.code > b.code) return 1;
+    return new Date(a.date) - new Date(b.date);
   });
 
-  const rows = [["Product Code", "Description", "Total Quantity"]];
-  for (const [code, data] of Object.entries(summary)) {
-    rows.push([code, data.description, data.total]);
+  // ✅ Group by code
+  const grouped = {};
+  all.forEach(r => {
+    if (!grouped[r.code]) grouped[r.code] = { description: r.description, items: [], total: 0 };
+    grouped[r.code].items.push(r);
+    grouped[r.code].total += r.qty;
+  });
+
+  // ✅ Prepare Excel rows same as production history
+  const rows = [["Date", "Code", "Description", "Qty", "Total Produce"]];
+  for (const [code, group] of Object.entries(grouped)) {
+    group.items.forEach((r, i) => {
+      rows.push([
+        r.date,
+        r.code,
+        r.description,
+        r.qty,
+        i === 0 ? group.total : "" // only show total once per code group
+      ]);
+    });
+    // Add visual separator (empty row)
+    rows.push([]);
   }
 
+  // ✅ Create Excel and format headers
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(rows);
-  XLSX.utils.book_append_sheet(wb, ws, "Summary Report");
-  XLSX.writeFile(wb, `Production_Summary_${start}_to_${end}.xlsx`);
+
+  // Optional: make headers bold
+  const headerRange = XLSX.utils.decode_range(ws['!ref']);
+  for (let C = headerRange.s.c; C <= headerRange.e.c; C++) {
+    const cellAddress = XLSX.utils.encode_cell({ r: 0, c: C });
+    if (!ws[cellAddress]) continue;
+    if (!ws[cellAddress].s) ws[cellAddress].s = {};
+    ws[cellAddress].s.font = { bold: true };
+  }
+
+  XLSX.utils.book_append_sheet(wb, ws, "Production History");
+  XLSX.writeFile(wb, `Production_History_${start}_to_${end}.xlsx`);
 };
 
 
@@ -691,14 +722,14 @@ async function loadHistoryRange(startDate, endDate, filterCode = '') {
   const records = [];
   snap.forEach(dateNode => {
     const date = dateNode.key;
-    if ((startDate && date < startDate) || (endDate && date > endDate)) return; // skip outside range
+    if ((startDate && date < startDate) || (endDate && date > endDate)) return;
     dateNode.forEach(entry => {
       const data = entry.val();
       records.push({
         date,
         code: data.code,
         description: data.description || '-',
-        qty: data.qty
+        qty: parseInt(data.qty) || 0
       });
     });
   });
@@ -706,23 +737,46 @@ async function loadHistoryRange(startDate, endDate, filterCode = '') {
   const filtered = records.filter(r => !filterCode || r.code === filterCode);
 
   if (filtered.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#999;">No records found</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;">No records found</td></tr>';
     return;
   }
 
-  filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-  filtered.forEach(r => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${r.date}</td>
-      <td>${r.code}</td>
-      <td>${r.description}</td>
-      <td>${r.qty}</td>
-    `;
-    tbody.appendChild(tr);
+  // ✅ Sort by code first (A-Z), then by date ascending
+  filtered.sort((a, b) => {
+    if (a.code < b.code) return -1;
+    if (a.code > b.code) return 1;
+    return new Date(a.date) - new Date(b.date);
   });
+
+  // ✅ Group by code and calculate totals
+  const grouped = {};
+  filtered.forEach(r => {
+    if (!grouped[r.code]) grouped[r.code] = { description: r.description, items: [], total: 0 };
+    grouped[r.code].items.push(r);
+    grouped[r.code].total += r.qty;
+  });
+
+  // ✅ Display grouped records with borders between codes
+  for (const [code, group] of Object.entries(grouped)) {
+    group.items.forEach((r, index) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${r.date}</td>
+        <td>${r.code}</td>
+        <td>${r.description}</td>
+        <td>${r.qty}</td>
+        <td>${index === 0 ? group.total : ''}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    // Add border separator row after each code group
+    const sep = document.createElement('tr');
+    sep.innerHTML = `<td colspan="5" style="border-bottom:3px solid #3b82f6;"></td>`;
+    tbody.appendChild(sep);
+  }
 }
+
 
 document.getElementById('clearFilter').onclick = () => {
   document.getElementById('historyStartDate').value = '';
