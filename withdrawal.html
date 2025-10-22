@@ -291,39 +291,52 @@ async function loadHistory(filterDate = '', filterCode = '') {
   });
 
   // ✅ Save changes
-  saveBtn.onclick = async () => {
-    if (!currentKey) return;
+// ✅ Save changes (with stock update)
+saveBtn.onclick = async () => {
+  if (!currentKey) return;
 
-    const newDate = editDate.value.trim();
-    const newClient = editClient.value.trim();
-    const newQty = parseInt(editQty.value, 10);
+  const newDate = editDate.value.trim();
+  const newClient = editClient.value.trim();
+  const newQty = parseInt(editQty.value, 10);
 
-    if (!newDate || !newClient || isNaN(newQty) || newQty <= 0) {
-      alert('Please enter valid values.');
-      return;
-    }
+  if (!newDate || !newClient || isNaN(newQty) || newQty <= 0) {
+    alert('Please enter valid values.');
+    return;
+  }
 
-    const ref = firebase.database().ref('withdrawals/' + currentKey);
-    await ref.update({
-      date: newDate,
-      client: newClient,
-      qty: newQty
-    });
+  await loadFirebase();
 
-    modal.style.display = 'none';
-    alert('✅ Record updated successfully!');
-    loadHistory(filterDate, filterCode);
-  };
+  // 🔹 Get old withdrawal data
+  const ref = firebase.database().ref('withdrawals/' + currentKey);
+  const snap = await ref.once('value');
+  const oldData = snap.val();
+  if (!oldData) return alert('Record not found!');
 
-  // ✅ Cancel edit
-  cancelBtn.onclick = () => {
-    modal.style.display = 'none';
-  };
+  const oldQty = oldData.qty;
+  const code = oldData.code;
 
-  // ✅ Close modal when clicking outside
-  modal.onclick = (e) => {
-    if (e.target === modal) modal.style.display = 'none';
-  };
+  // 🔹 Update the withdrawal record
+  await ref.update({
+    date: newDate,
+    client: newClient,
+    qty: newQty
+  });
+
+  // 🔹 Adjust inventory stock
+  const itemRef = firebase.database().ref('inventory_items/' + code);
+  const itemSnap = await itemRef.once('value');
+  const itemData = itemSnap.val();
+  const currentStock = itemData.qty || 0;
+
+  // If newQty is smaller → return stock; if larger → reduce more
+  const adjustedStock = currentStock + (oldQty - newQty);
+  await itemRef.update({ qty: adjustedStock });
+
+  modal.style.display = 'none';
+  alert('✅ Record and stock updated successfully!');
+  loadHistory(filterDate, filterCode);
+};
+
 }
 
 
@@ -430,7 +443,6 @@ async function loadHistory(filterDate = '', filterCode = '') {
 
 </body>
 </html>
-
 
 
 
