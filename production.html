@@ -299,15 +299,17 @@
       <button id="generateReport">Generate Report</button>
     </div>
     <table id="historyTable" style="margin-top:10px;">
-      <thead>
+  <thead>
   <tr>
     <th>Date</th>
     <th>Code</th>
     <th>Description</th>
     <th>Qty</th>
     <th>Total Produce</th>
+    <th>Action</th>
   </tr>
 </thead>
+
 
       <tbody>
         <tr>
@@ -316,6 +318,29 @@
       </tbody>
     </table>
   </div>
+
+
+  
+<!-- Edit Modal -->
+<div id="editModal" style="
+  display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.4); align-items:center; justify-content:center;
+">
+  <div style="
+    background:white; padding:20px; border-radius:10px; width:300px;
+    box-shadow:0 0 10px rgba(0,0,0,0.2);
+  ">
+    <h3>Edit Record</h3>
+    <label>Date: <input type="date" id="editDate" disabled></label><br><br>
+    <label>Code: <input type="text" id="editCode" disabled></label><br><br>
+    <label>Description: <input type="text" id="editDesc" disabled></label><br><br>
+    <label>Quantity: <input type="number" id="editQty"></label><br><br>
+    <button id="saveEdit" style="background:#3b82f6;color:white;padding:6px 14px;border:none;border-radius:6px;">Save</button>
+    <button id="cancelEdit" style="background:#6b7280;color:white;padding:6px 14px;border:none;border-radius:6px;">Cancel</button>
+  </div>
+</div>
+
+
 
 
 
@@ -759,14 +784,23 @@ async function loadHistoryRange(startDate, endDate, filterCode = '') {
   // ✅ Display grouped records with borders between codes
   for (const [code, group] of Object.entries(grouped)) {
     group.items.forEach((r, index) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${r.date}</td>
-        <td>${r.code}</td>
-        <td>${r.description}</td>
-        <td>${r.qty}</td>
-        <td>${index === 0 ? group.total : ''}</td>
-      `;
+     const tr = document.createElement('tr');
+tr.innerHTML = `
+  <td>${r.date}</td>
+  <td>${r.code}</td>
+  <td>${r.description}</td>
+  <td>${r.qty}</td>
+  <td>${index === 0 ? group.total : ''}</td>
+  <td><button class="editBtn" 
+      data-date="${r.date}" 
+      data-code="${r.code}" 
+      data-desc="${r.description}" 
+      data-qty="${r.qty}"
+      style="background:#facc15;border:none;padding:6px 12px;border-radius:8px;cursor:pointer;">
+      ✏️ Edit
+  </button></td>
+`;
+
       tbody.appendChild(tr);
     });
 
@@ -785,6 +819,94 @@ document.getElementById('clearFilter').onclick = () => {
  
 };
 
+let currentEdit = {};
+
+document.addEventListener("click", async (e) => {
+  if (e.target.classList.contains("editBtn")) {
+    const date = e.target.dataset.date;
+    const code = e.target.dataset.code;
+    const desc = e.target.dataset.desc;
+    const oldQty = parseInt(e.target.dataset.qty);
+
+    // Store current record
+    currentEdit = { date, code, desc, oldQty };
+
+    // Fill modal fields
+    document.getElementById("editDate").value = date;
+    document.getElementById("editCode").value = code;
+    document.getElementById("editDesc").value = desc;
+    document.getElementById("editQty").value = oldQty;
+
+    // Show modal
+    document.getElementById("editModal").style.display = "flex";
+  }
+});
+
+
+document.getElementById("cancelEdit").onclick = () => {
+  document.getElementById("editModal").style.display = "none";
+};
+
+document.getElementById("saveEdit").onclick = async () => {
+  const newQty = parseInt(document.getElementById("editQty").value);
+  const { date, code, oldQty } = currentEdit;
+
+  if (isNaN(newQty) || newQty < 0) {
+    alert("Invalid quantity.");
+    return;
+  }
+
+  if (newQty === oldQty) {
+    alert("No change in quantity.");
+    return;
+  }
+
+  if (!confirm("Save changes? This will adjust current stock accordingly.")) return;
+
+  await loadFirebase();
+
+  // References
+  const prodRef = firebase.database().ref("daily_production/" + date);
+  const invRef = firebase.database().ref("inventory_items/" + code);
+
+  // Find matching production entry
+  const snap = await prodRef.once("value");
+  let targetKey = null;
+  snap.forEach(entry => {
+    const data = entry.val();
+    if (data.code === code && data.qty === oldQty) targetKey = entry.key;
+  });
+
+  if (!targetKey) {
+    alert("Record not found.");
+    return;
+  }
+
+  // Adjust stock
+  const invSnap = await invRef.once("value");
+  const currentStock = invSnap.val()?.qty || 0;
+  const adjustedStock = currentStock - oldQty + newQty;
+
+  await invRef.update({ qty: adjustedStock });
+  await prodRef.child(targetKey).update({ qty: newQty });
+
+  alert(`✅ Record updated.\nStock adjusted from ${currentStock} ➜ ${adjustedStock}`);
+
+  // Close modal
+  document.getElementById("editModal").style.display = "none";
+
+  // Refresh history
+  const start = document.getElementById('historyStartDate').value;
+  const end = document.getElementById('historyEndDate').value;
+  const filterCode = document.getElementById('filterCode').value;
+  loadHistoryRange(start, end, filterCode);
+};
+
+
+
+
   </script>
+
 </body>
 </html>
+
