@@ -238,10 +238,31 @@ table.preview-table tbody tr:hover { background: #f1f5f9; }
 <!-- === MAIN CONTENT === -->
 <div class="main">
   <div class="container">
-    <h1><span class="badge">INV</span> Inventory Dashboard</h1>
-    <div id="msg"></div>
-    <div class="table-container">
-      <table id="tbl">
+ <h1><span class="badge">INV</span> Inventory Dashboard</h1>
+<div id="msg"></div>
+
+<!-- === SEARCH BAR === -->
+<div style="margin-bottom: 20px; display: flex; justify-content: flex-end;">
+  <input 
+    type="text" 
+    id="searchBar" 
+    placeholder="🔍 Search Product Code..." 
+    style="
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid #d1d5db;
+      width: 280px;
+      font-size: 0.95rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      transition: 0.2s;
+    "
+    onkeyup="searchProductCode()"
+  />
+</div>
+
+<div class="table-container">
+  <table id="tbl">
+
         <thead>
           <tr>
             <th>Product Code</th>
@@ -335,6 +356,9 @@ async function renderTable(){
   msg.textContent=`✅ Loaded ${items.length} products.`;
 }
 
+
+
+
 /* === MODAL HANDLING === */
 const manageModal=document.getElementById('manageModal');
 manageBtn.onclick=()=>manageModal.style.display='flex';
@@ -403,7 +427,33 @@ downloadBtn.addEventListener('click',async()=>{
   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Inventory');
   XLSX.writeFile(wb,'Inventory.xlsx');
 });
+
+
+function searchProductCode() {
+  const input = document.getElementById('searchBar');
+  const filter = input.value.toLowerCase();
+  const table = document.getElementById('tbl');
+  const tr = table.getElementsByTagName('tr');
+
+  for (let i = 1; i < tr.length; i++) { // skip header row
+    const td = tr[i].getElementsByTagName('td')[0]; // Product Code column
+    if (td) {
+      const txtValue = td.textContent || td.innerText;
+      tr[i].style.display = txtValue.toLowerCase().includes(filter) ? '' : 'none';
+    }
+  }
+}
+
+
+
+
 renderTable();
+
+
+
+
+
+
 </script>
 </body>
 </html>
