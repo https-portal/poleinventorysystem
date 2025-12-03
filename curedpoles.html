@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Available Cured Stock</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --primary: #0ea5e9;
+  --text-dark: #1f2937;
+  --bg: #ffffff;
+  --card-bg: #f3f4f6;
+  --border: #d1d5db;
+  --radius: 12px;
+  --red: #dc2626;
+  --yellow: #facc15;
+  --normal-bg: #cbd5e1;
+}
+
+/* --- Reset and body --- */
+body {
+  font-family: "Inter", "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  margin: 0;
+  padding: 0;
+  color: var(--text-dark);
+}
+
+/* --- Top Bar --- */
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background: var(--primary);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  z-index: 1000;
+}
+
+.topbar .container {
+  max-width: 900px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+}
+
+.topbar button {
+  background: white;
+  color: var(--primary);
+  border: none;
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* --- Main content --- */
+.main {
+  max-width: 900px;
+  margin: 80px auto 24px auto; /* top margin to avoid topbar */
+  padding: 16px;
+}
+
+/* --- Controls --- */
+#controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+  align-items: center;
+}
+
+input, select, button {
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  font-size: 0.95rem;
+}
+
+/* --- Table Card --- */
+.table-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  overflow-x: auto;
+  max-height: 600px; 
+  overflow-y: auto;
+}
+
+table {
+  width: 100%;
+  min-width: 600px;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+th {
+  background: var(--primary);
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+tbody tr:nth-child(even) {
+  background: #e5e7eb;
+}
+
+tbody tr:hover {
+  background: #d1d5db;
+}
+
+/* --- Stock Pills --- */
+.stock-pill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 50px;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.stock-zero { background-color: var(--red); color: #fff; }
+.stock-low { background-color: var(--yellow); color: #000; }
+.stock-normal { background-color: var(--normal-bg); color: var(--text-dark); }
+
+
+/* Spinner animation */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 5px solid #cbd5e1; /* Light grey background */
+  border-top: 5px solid #0ea5e9; /* Primary color */
+  border-radius: 50%;
+  margin: auto;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+
+</style>
+</head>
+
+<body>
+
+<!-- Top Bar -->
+<div class="topbar">
+  <div class="container">
+    <h2>Available Cured Stock</h2>
+    <a href="index.html"><button>Dashboard</button></a>
+  </div>
+</div>
+
+<div class="main">
+  <!-- Controls -->
+  <div id="controls">
+    <label>Select Date: <input type="date" id="datePicker"></label>
+    <button id="showBtn">Show Cured Poles</button>
+  </div>
+
+
+
+  <!-- Loading indicator -->
+<!-- Loading indicator -->
+<!-- Loading indicator -->
+<div id="loading" style="display:none; text-align:center; margin-bottom:10px;">
+  <div class="spinner"></div>
+  <div style="margin-top:8px; font-weight:600; color:#0ea5e9;">Loading Cured Stock...</div>
+</div>
+
+
+  <!-- Table -->
+  <div class="table-card">
+    <table id="stockTable">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Description</th>
+          <th>Current Stock</th>
+          <th>Produced (14 days ago)</th>
+          <th>Cured Total</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAzMFxfrYC8rHVgX3NPts6DXGMIsyoKeeY",
+  authDomain: "bikerental-71d2f.firebaseapp.com",
+  databaseURL: "https://bikerental-71d2f-default-rtdb.firebaseio.com",
+  projectId: "bikerental-71d2f",
+  storageBucket: "bikerental-71d2f.firebasestorage.app",
+  messagingSenderId: "349527647193",
+  appId: "1:349527647193:web:8db12034619c8e423b2fc8",
+  measurementId: "G-NWMX3S2S6B"
+};
+
+let cachedInventory = {};
+let firebaseLoaded = false;
+
+// Load Firebase once
+async function loadFirebase() {
+  if (firebaseLoaded) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const s1 = document.createElement('script');
+    s1.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
+    s1.onload = () => {
+      const s2 = document.createElement('script');
+      s2.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js';
+      s2.onload = () => {
+        firebase.initializeApp(firebaseConfig);
+        firebaseLoaded = true;
+        resolve();
+      };
+      s2.onerror = reject;
+      document.head.appendChild(s2);
+    };
+    s1.onerror = reject;
+    document.head.appendChild(s1);
+  });
+}
+
+// Load inventory once
+async function loadInventory() {
+  if (Object.keys(cachedInventory).length) return cachedInventory;
+  await loadFirebase();
+  const db = firebase.database();
+  const invRef = db.ref("inventory_items");
+  const invSnap = await invRef.once("value");
+  cachedInventory = invSnap.val() || {};
+  return cachedInventory;
+}
+
+// Show cured stock
+async function showCuredStock(dateInput) {
+  const inventory = await loadInventory();
+  const db = firebase.database();
+  const prodRef = db.ref("daily_production");
+  const selectedDate = new Date(dateInput);
+  const prodSnap = await prodRef.once("value");
+  const allProduction = prodSnap.val() || {};
+
+  const tbody = document.querySelector("#stockTable tbody");
+  tbody.innerHTML = ""; // always clear table first
+
+  for (const [code, item] of Object.entries(inventory)) {
+    const desc = item.description || "-";
+    const currentStock = item.qty || 0;
+
+    let produced14DaysAgo = 0;
+    let producedLess14Days = 0;
+
+    for (const dateKey in allProduction) {
+      const prodDate = new Date(dateKey);
+      const diffDays = (selectedDate - prodDate) / (1000*60*60*24);
+      const dailyProd = allProduction[dateKey];
+      for (const key in dailyProd) {
+        if (dailyProd[key].code === code) {
+          const qty = parseInt(dailyProd[key].qty) || 0;
+          if (diffDays >= 14) produced14DaysAgo += qty;
+          else if (diffDays > 0 && diffDays < 14) producedLess14Days += qty;
+        }
+      }
+    }
+
+    let curedTotal = currentStock - producedLess14Days;
+    if (curedTotal < 0) curedTotal = 0;
+
+    const tr = document.createElement("tr");
+    let stockClass = 'stock-normal';
+    if (curedTotal === 0) stockClass = 'stock-zero';
+    else if (curedTotal < 20) stockClass = 'stock-low';
+
+    tr.innerHTML = `
+      <td>${code}</td>
+      <td>${desc}</td>
+      <td><span class="stock-pill ${stockClass}">${currentStock}</span></td>
+      <td>${produced14DaysAgo}</td>
+      <td><span class="stock-pill ${stockClass}">${curedTotal}</span></td>
+    `;
+    tbody.appendChild(tr);
+  }
+}
+
+// Function to handle showing stock
+async function handleShowStock() {
+  const date = document.getElementById("datePicker").value;
+  if (!date) return alert("Please select a date first.");
+
+  // Show loading
+  const loading = document.getElementById("loading");
+  loading.style.display = "block";
+
+  try {
+    await showCuredStock(date);
+  } finally {
+    // Hide loading after data is loaded
+    loading.style.display = "none";
+  }
+}
+
+
+// Attach button click
+document.getElementById("showBtn").addEventListener("click", handleShowStock);
+
+// Also attach date change event to auto-update table
+
+</script>
+
+
+</body>
+</html>

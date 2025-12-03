@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Pole Inventory</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --primary: #0ea5e9;
+  --text-dark: #1f2937;
+  --text-light: #111827;
+  --bg: #ffffff;
+  --card-bg: #f3f4f6;
+  --border: #d1d5db;
+  --radius: 12px;
+  --red: #dc2626;
+  --yellow: #facc15;
+  --normal-bg: #cbd5e1;
+}
+
+/* --- Reset and body --- */
+body {
+  font-family: "Inter", "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  margin: 0;
+  padding: 0;
+  color: var(--text-dark);
+}
+
+/* --- Top Bar --- */
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background: var(--primary);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  z-index: 1000;
+}
+
+.topbar .container {
+  max-width: 1250px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+}
+
+.topbar h2 {
+  margin: 0;
+}
+
+.topbar button {
+  background: white;
+  color: var(--primary);
+  border: none;
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* --- Main content --- */
+.main {
+  padding: 100px 20px 30px; /* top padding increased to avoid topbar overlap */
+}
+
+.container {
+  max-width: 1250px;
+  margin: auto;
+}
+
+h1 {
+  font-size: 2rem;
+  color: var(--primary);
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+#msg {
+  font-size: 0.95rem;
+  color: #6b7280;
+  margin-bottom: 20px;
+  font-style: italic;
+}
+
+#searchBar {
+  padding: 12px 15px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  width: 100%;
+  margin-bottom: 25px;
+  font-size: 0.95rem;
+  background: #ffffff;
+  color: var(--text-dark);
+}
+
+#searchBar::placeholder {
+  color: #9ca3af;
+}
+
+/* Summary cards above table */
+.summary-cards {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.summary-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 15px 20px;
+  border: 1px solid var(--border);
+  flex: 1 1 200px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.summary-card h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--text-dark);
+}
+
+.summary-card p {
+  margin: 5px 0 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+/* SINGLE CARD CONTAINER */
+.table-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 20px;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  overflow-x: auto;       
+  max-height: 700px;      
+  overflow-y: auto;       
+}
+
+.table-card table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-card thead {
+  background: var(--primary);
+  color: #ffffff;
+  position: sticky;       
+  top: 0;
+  z-index: 1;
+}
+
+.table-card th, .table-card td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.table-card tbody tr:nth-child(even) {
+  background: #e5e7eb;
+}
+
+.table-card tbody tr:hover {
+  background: #d1d5db;
+}
+
+/* Stock Highlights as pill-shaped ovals */
+.stock-pill {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 50px; 
+  text-align: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+  transition: 0.2s ease;
+}
+
+.stock-zero { background-color: var(--red); color: #ffffff; }
+.stock-low { background-color: var(--yellow); color: #000000; }
+.stock-normal { background-color: var(--normal-bg); color: var(--text-dark); }
+
+.stock-pill:hover {
+  transform: scale(1.1);
+}
+
+@media (max-width: 800px) {
+  .main { padding: 80px 20px 20px; }
+  .table-card th, .table-card td { padding: 10px; }
+  .summary-cards { flex-direction: column; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- Top Bar -->
+<div class="topbar">
+  <div class="container">
+    <h2>Pole Inventory Dashboard</h2>
+    <a href="index.html"><button>Dashboard</button></a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="container">
+    <h1>Inventory Dashboard</h1>
+    <div id="msg"></div>
+
+    <input type="text" id="searchBar" placeholder="🔍 Search Product Code..." onkeyup="searchProductCode()">
+
+    <!-- Summary Cards Above Table -->
+    <div class="summary-cards">
+      <div class="summary-card">
+        <h2 id="totalStock">0</h2>
+        <p>Total Stock</p>
+      </div>
+      <div class="summary-card">
+        <h2 id="lowStock">0</h2>
+        <p>Low Stock (&lt;20)</p>
+      </div>
+      <div class="summary-card">
+        <h2 id="outStock">0</h2>
+        <p>Out of Stock</p>
+      </div>
+    </div>
+
+    <div class="table-card" id="tableContainer">
+      <table>
+        <thead>
+          <tr>
+            <th>Product Code</th>
+            <th>Description</th>
+            <th>Current Stock</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Products injected here by JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAzMFxfrYC8rHVgX3NPts6DXGMIsyoKeeY",
+  authDomain: "bikerental-71d2f.firebaseapp.com",
+  databaseURL: "https://bikerental-71d2f-default-rtdb.firebaseio.com",
+  projectId: "bikerental-71d2f",
+  storageBucket: "bikerental-71d2f.firebasestorage.app",
+  messagingSenderId: "349527647193",
+  appId: "1:349527647193:web:8db12034619c8e423b2fc8",
+  measurementId: "G-NWMX3S2S6B"
+};
+
+function loadFirebase(){
+  return new Promise((resolve,reject)=>{
+    if(window.firebase && window.firebase.apps && window.firebase.apps.length) return resolve(firebase);
+    const s1=document.createElement('script'); s1.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
+    s1.onload=()=>{
+      const s2=document.createElement('script'); s2.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js';
+      s2.onload=()=>{firebase.initializeApp(firebaseConfig); resolve(firebase);}
+      s2.onerror=reject; document.head.appendChild(s2);
+    }
+    s1.onerror=reject; document.head.appendChild(s1);
+  });
+}
+
+let products={};
+
+async function renderTable(){
+  document.getElementById('msg').textContent='Loading products...';
+  await loadFirebase();
+  const tbody = document.querySelector('#tableContainer tbody');
+  tbody.innerHTML = '';
+  const snapshot = await firebase.database().ref('inventory_items').once('value');
+  const data = snapshot.val() || {};
+  const items = Object.entries(data).map(([id,i])=>({
+    id,
+    code:i.code||'',
+    description:i.description||'',
+    qty:i.qty??0
+  })).sort((a,b)=>a.code.localeCompare(b.code));
+
+  let totalStock = 0, lowStock = 0, outStock = 0;
+
+  for(const item of items){
+    products[item.id] = item;
+    const tr = document.createElement('tr');
+
+    let stockClass = 'stock-normal';
+    if(item.qty === 0) { stockClass = 'stock-zero'; outStock++; }
+    else if(item.qty < 20) { stockClass = 'stock-low'; lowStock++; }
+
+    totalStock += item.qty;
+
+    tr.innerHTML = `
+      <td>${item.code}</td>
+      <td>${item.description}</td>
+      <td><span class="stock-pill ${stockClass}">${item.qty}</span></td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  document.getElementById('totalStock').textContent = totalStock;
+  document.getElementById('lowStock').textContent = lowStock;
+  document.getElementById('outStock').textContent = outStock;
+
+  document.getElementById('msg').textContent=`✅ Loaded ${items.length} products.`;
+}
+
+function searchProductCode() {
+  const input = document.getElementById('searchBar');
+  const filter = input.value.toLowerCase();
+  const tbody = document.querySelector('#tableContainer tbody');
+  const trs = tbody.getElementsByTagName('tr');
+  for(let i=0; i<trs.length; i++){
+    const code = trs[i].getElementsByTagName('td')[0].textContent;
+    trs[i].style.display = code.toLowerCase().includes(filter) ? '' : 'none';
+  }
+}
+
+renderTable();
+</script>
+</body>
+</html>

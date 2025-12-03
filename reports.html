@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Generate Inventory Reports</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f9fafb;
+    }
+
+    /* --- Top Bar --- */
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background: #0ea5e9;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      z-index: 1000;
+    }
+    .topbar .container {
+      max-width: 1100px;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 16px;
+    }
+    .topbar h2 {
+      margin: 0;
+    }
+    .topbar button {
+      background: white;
+      color: #0ea5e9;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    h1 {
+      color: #1e3a8a;
+      margin-bottom: 20px;
+      margin-top: 80px; /* avoid overlap with topbar */
+    }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+    input, button {
+      padding: 8px 14px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 0.95rem;
+    }
+    button {
+      background: #3668d4;
+      color: #fff;
+      cursor: pointer;
+      border: none;
+      font-weight: 600;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+
+    /* Scrollable table container */
+    .table-container {
+      max-height: 500px;
+      overflow-y: auto;
+      overflow-x: auto;
+      border-radius: 8px;
+      margin-top: 10px;
+      background: #fff;
+      border: 1px solid #ccc;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 800px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+      vertical-align: middle;
+    }
+    th {
+      background: #158aeb;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    tbody tr:nth-child(even) {
+      background: #f1f5f9;
+    }
+
+    #searchBar {
+      width: 40%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 0.95rem;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <div class="topbar">
+    <div class="container">
+      <h2>Inventory Reports</h2>
+      <button onclick="window.location.href='index.html'">Dashboard</button>
+    </div>
+  </div>
+
+  
+
+  <input type="text" id="searchBar" placeholder="🔍 Search by Code or Description...">
+
+  <div class="filters">
+    <label>From: <input type="date" id="startDate"></label>
+    <label>To: <input type="date" id="endDate"></label>
+
+    <button id="generateBtn">Generate Report</button>
+    <button id="exportBtn">Export to Excel</button>
+ 
+  </div>
+
+  <!-- Scrollable table wrapper -->
+  <div class="table-container">
+    <table id="reportTable">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Description</th>
+          <th>Beginning Stock</th>
+          <th>Total Produced</th>
+          <th>Total Withdrawn</th>
+          <th>Current Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="6" style="text-align:center;color:#888;">Select date range and click Generate Report</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    // Keep all your existing JS functions as-is
+    const firebaseConfig = {
+      apiKey: "AIzaSyAzMFxfrYC8rHVgX3NPts6DXGMIsyoKeeY",
+      authDomain: "bikerental-71d2f.firebaseapp.com",
+      databaseURL: "https://bikerental-71d2f-default-rtdb.firebaseio.com",
+      projectId: "bikerental-71d2f",
+      storageBucket: "bikerental-71d2f.firebasestorage.app",
+      messagingSenderId: "349527647193",
+      appId: "1:349527647193:web:8db12034619c8e423b2fc8",
+      measurementId: "G-NWMX3S2S6B"
+    };
+
+    async function loadFirebase() {
+      return new Promise((resolve, reject) => {
+        if (window.firebase && window.firebase.apps.length) return resolve(window.firebase);
+        const s1 = document.createElement('script');
+        s1.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
+        s1.onload = () => {
+          const s2 = document.createElement('script');
+          s2.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js';
+          s2.onload = () => { firebase.initializeApp(firebaseConfig); resolve(firebase); };
+          s2.onerror = reject; document.head.appendChild(s2);
+        }
+        s1.onerror = reject; document.head.appendChild(s1);
+      });
+    }
+
+    // All other JS functions (generate report, export, back, search) remain unchanged
+    document.getElementById('generateBtn').onclick = async () => {
+      const start = document.getElementById('startDate').value;
+      const end = document.getElementById('endDate').value;
+      if (!start || !end) return alert("Please select both start and end dates.");
+
+      await loadFirebase();
+      const db = firebase.database();
+
+      const invSnap = await db.ref('inventory_items').once('value');
+      const prodSnap = await db.ref('daily_production').once('value');
+      const withSnap = await db.ref('withdrawals').once('value');
+
+      const inventory = invSnap.val() || {};
+      const production = prodSnap.val() || {};
+      const withdrawals = withSnap.val() || {};
+
+      const report = {};
+
+      for (const [code, item] of Object.entries(inventory)) {
+        report[code] = {
+          description: item.description || '-',
+          beginning: item.qty || 0,
+          produced: 0,
+          withdrawn: 0,
+          current: item.qty || 0
+        };
+      }
+
+      for (const [date, entries] of Object.entries(production)) {
+        if (date >= start && date <= end) {
+          for (const key in entries) {
+            const p = entries[key];
+            if (report[p.code]) report[p.code].produced += parseInt(p.qty) || 0;
+          }
+        }
+      }
+
+      for (const [key, w] of Object.entries(withdrawals)) {
+        if (w.date >= start && w.date <= end) {
+          if (report[w.code]) report[w.code].withdrawn += parseInt(w.qty) || 0;
+        }
+      }
+
+      for (const code in report) {
+        const r = report[code];
+        r.beginning = r.current - r.produced + r.withdrawn;
+      }
+
+      const tbody = document.querySelector('#reportTable tbody');
+      tbody.innerHTML = '';
+
+      for (const [code, r] of Object.entries(report)) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${code}</td>
+          <td>${r.description}</td>
+          <td>${r.beginning}</td>
+          <td>${r.produced}</td>
+          <td>${r.withdrawn}</td>
+          <td><b>${r.current}</b></td>
+        `;
+        tbody.appendChild(tr);
+      }
+    };
+
+    document.getElementById('exportBtn').onclick = () => {
+      const table = document.getElementById('reportTable');
+      const rows = Array.from(table.querySelectorAll('tr')).map(tr => 
+        Array.from(tr.querySelectorAll('th,td')).map(td => td.textContent)
+      );
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      XLSX.utils.book_append_sheet(wb, ws, 'Inventory Report');
+      XLSX.writeFile(wb, 'Inventory_Report.xlsx');
+    };
+
+    document.getElementById('backBtn').onclick = () => {
+      window.location.href = 'index.html';
+    };
+
+    function searchReportTable() {
+      const input = document.getElementById('searchBar');
+      const filter = input.value.toLowerCase();
+      const table = document.getElementById('reportTable');
+      const tr = table.getElementsByTagName('tr');
+
+      for (let i = 1; i < tr.length; i++) {
+        const tdCode = tr[i].getElementsByTagName('td')[0];
+        const tdDesc = tr[i].getElementsByTagName('td')[1];
+        if (tdCode && tdDesc) {
+          const codeText = tdCode.textContent.toLowerCase();
+          const descText = tdDesc.textContent.toLowerCase();
+          tr[i].style.display = (codeText.includes(filter) || descText.includes(filter)) ? '' : 'none';
+        }
+      }
+    }
+
+    document.getElementById('searchBar').addEventListener('keyup', searchReportTable);
+  </script>
+
+</body>
+</html>
