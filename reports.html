@@ -195,70 +195,104 @@
     }
 
     // All other JS functions (generate report, export, back, search) remain unchanged
-    document.getElementById('generateBtn').onclick = async () => {
-      const start = document.getElementById('startDate').value;
-      const end = document.getElementById('endDate').value;
-      if (!start || !end) return alert("Please select both start and end dates.");
+document.getElementById('generateBtn').onclick = async () => {
+  const start = document.getElementById('startDate').value;
+  const end = document.getElementById('endDate').value;
+  if (!start || !end) return alert("Please select both start and end dates.");
 
-      await loadFirebase();
-      const db = firebase.database();
+  await loadFirebase();
+  const db = firebase.database();
 
-      const invSnap = await db.ref('inventory_items').once('value');
-      const prodSnap = await db.ref('daily_production').once('value');
-      const withSnap = await db.ref('withdrawals').once('value');
+  const invSnap = await db.ref('inventory_items').once('value');
+  const prodSnap = await db.ref('daily_production').once('value');
+  const withSnap = await db.ref('withdrawals').once('value');
 
-      const inventory = invSnap.val() || {};
-      const production = prodSnap.val() || {};
-      const withdrawals = withSnap.val() || {};
+  const inventory = invSnap.val() || {};
+  const production = prodSnap.val() || {};
+  const withdrawals = withSnap.val() || {};
 
-      const report = {};
+  const report = {};
 
-      for (const [code, item] of Object.entries(inventory)) {
-        report[code] = {
-          description: item.description || '-',
-          beginning: item.qty || 0,
-          produced: 0,
-          withdrawn: 0,
-          current: item.qty || 0
-        };
-      }
-
-      for (const [date, entries] of Object.entries(production)) {
-        if (date >= start && date <= end) {
-          for (const key in entries) {
-            const p = entries[key];
-            if (report[p.code]) report[p.code].produced += parseInt(p.qty) || 0;
-          }
-        }
-      }
-
-      for (const [key, w] of Object.entries(withdrawals)) {
-        if (w.date >= start && w.date <= end) {
-          if (report[w.code]) report[w.code].withdrawn += parseInt(w.qty) || 0;
-        }
-      }
-
-      for (const code in report) {
-        const r = report[code];
-        r.beginning = r.current - r.produced + r.withdrawn;
-      }
-
-      const tbody = document.querySelector('#reportTable tbody');
-      tbody.innerHTML = '';
-
-      for (const [code, r] of Object.entries(report)) {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${code}</td>
-          <td>${r.description}</td>
-          <td>${r.beginning}</td>
-          <td>${r.produced}</td>
-          <td>${r.withdrawn}</td>
-          <td><b>${r.current}</b></td>
-        `;
-        tbody.appendChild(tr);
-      }
+  // Initialize report
+  for (const [code, item] of Object.entries(inventory)) {
+    report[code] = {
+      description: item.description || '-',
+      beginning: item.qty || 0,
+      produced: 0,
+      withdrawn: 0,
+      current: item.qty || 0
     };
+  }
+
+  // Production
+  for (const [date, entries] of Object.entries(production)) {
+    if (date >= start && date <= end) {
+      for (const key in entries) {
+        const p = entries[key];
+        if (report[p.code]) report[p.code].produced += parseInt(p.qty) || 0;
+      }
+    }
+  }
+
+  // Withdrawals
+  for (const [key, w] of Object.entries(withdrawals)) {
+    if (w.date >= start && w.date <= end) {
+      if (report[w.code]) report[w.code].withdrawn += parseInt(w.qty) || 0;
+    }
+  }
+
+  // Recalculate beginning
+  for (const code in report) {
+    const r = report[code];
+    r.beginning = r.current - r.produced + r.withdrawn;
+  }
+
+  // Display rows
+  const tbody = document.querySelector('#reportTable tbody');
+  tbody.innerHTML = '';
+
+  for (const [code, r] of Object.entries(report)) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${code}</td>
+      <td>${r.description}</td>
+      <td>${r.beginning}</td>
+      <td>${r.produced}</td>
+      <td>${r.withdrawn}</td>
+      <td><b>${r.current}</b></td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  // ---- COMPUTE TOTALS ----
+  let totalBeginning = 0;
+  let totalProduced = 0;
+  let totalWithdrawn = 0;
+  let totalCurrent = 0;
+
+  for (const r of Object.values(report)) {
+    totalBeginning += r.beginning;
+    totalProduced += r.produced;
+    totalWithdrawn += r.withdrawn;
+    totalCurrent += r.current;
+  }
+
+  // ---- ADD TOTAL ROW ----
+  const totalRow = document.createElement('tr');
+  totalRow.style.fontWeight = "bold";
+  totalRow.style.background = "#d1e7ff";
+
+  totalRow.innerHTML = `
+    <td colspan="2" style="text-align:right;">TOTAL:</td>
+    <td>${totalBeginning}</td>
+    <td>${totalProduced}</td>
+    <td>${totalWithdrawn}</td>
+    <td>${totalCurrent}</td>
+  `;
+
+  tbody.appendChild(totalRow);
+};
+
 
     document.getElementById('exportBtn').onclick = () => {
       const table = document.getElementById('reportTable');
