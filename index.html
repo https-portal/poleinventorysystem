@@ -274,11 +274,11 @@ table th, table td {
 </table>
 
 <!-- SUMMARY -->
-<div class="summary-row">
-    <div class="summary-card">
-        <h4>Total Class A</h4>
-        <span>1,250</span>
-    </div>
+<div class="summary-card">
+    <h4>Total Class A</h4>
+    <span id="totalClassA">0</span>
+</div>
+
     <div class="summary-card">
         <h4>Total Class B</h4>
         <span>1,500</span>
@@ -377,25 +377,59 @@ const saveUpload = document.getElementById('saveUpload');
 const downloadBtn = document.getElementById('downloadBtn');
 
 async function renderTable(){
- 
   await loadFirebase();
-  const tbody=document.querySelector('#tbl tbody');tbody.innerHTML='';
-  selectProduct.innerHTML='<option value="">Select product</option>';
-  const snapshot=await firebase.database().ref('inventory_items').once('value');
-  const data=snapshot.val()||{};
-  products={};
-  const items=Object.entries(data).map(([id,i])=>({id,code:i.code||'',description:i.description||'',qty:i.qty??0}))
-    .sort((a,b)=>a.code.localeCompare(b.code));
-  for(const item of items){
-    products[item.id]=item;
-    const tr=document.createElement('tr');
-    const badgeClass=item.qty<10?'badge-low':'badge-high';
-    tr.innerHTML=`<td>${item.code}</td><td>${item.description}</td><td><span class="badge-stock ${badgeClass}">${item.qty}</span></td>`;
+
+  const tbody = document.querySelector('#tbl tbody');
+  tbody.innerHTML = '';
+  selectProduct.innerHTML = '<option value="">Select product</option>';
+
+  const snapshot = await firebase.database().ref('inventory_items').once('value');
+  const data = snapshot.val() || {};
+
+  products = {};
+
+  const items = Object.entries(data)
+    .map(([id, i]) => ({
+      id,
+      code: i.code || '',
+      description: i.description || '',
+      qty: i.qty ?? 0
+    }))
+    .sort((a, b) => a.code.localeCompare(b.code));
+
+  // 🔹 SAME FORMULA STYLE AS YOUR WORKING CODE
+  let totalClassA = 0;
+
+  for (const item of items) {
+    products[item.id] = item;
+
+    // ----- TABLE -----
+    const tr = document.createElement('tr');
+    const badgeClass = item.qty < 10 ? 'badge-low' : 'badge-high';
+
+    tr.innerHTML = `
+      <td>${item.code}</td>
+      <td>${item.description}</td>
+      <td><span class="badge-stock ${badgeClass}">${item.qty}</span></td>
+    `;
     tbody.appendChild(tr);
-    const opt=document.createElement('option');opt.value=item.id;opt.textContent=item.code;selectProduct.appendChild(opt);
+
+    const opt = document.createElement('option');
+    opt.value = item.id;
+    opt.textContent = item.code;
+    selectProduct.appendChild(opt);
+
+    // ----- TOTAL CLASS A (SUM OF QTY) -----
+    if (item.code.startsWith('A-')) {
+      totalClassA += item.qty;   // ✅ SAME FORMULA AS BEFORE
+    }
   }
- 
+
+  // 🔹 UPDATE SUMMARY CARD
+  document.getElementById('totalClassA').textContent =
+    totalClassA.toLocaleString();
 }
+
 
 
 /* MODAL HANDLING */
@@ -529,3 +563,4 @@ window.onclick = e => { if(e.target===manageModal) manageModal.style.display='no
 
 </body>
 </html>
+
