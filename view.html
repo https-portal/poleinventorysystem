@@ -45,7 +45,6 @@ body {
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   z-index: 1000;
 }
-
 .topbar .container {
   max-width: 1250px;
   width: 100%;
@@ -54,11 +53,7 @@ body {
   align-items: center;
   padding: 0 16px;
 }
-
-.topbar h2 {
-  margin: 0;
-}
-
+.topbar h2 { margin:0; }
 .topbar button {
   background: white;
   color: var(--primary);
@@ -70,140 +65,102 @@ body {
 }
 
 /* --- Main content --- */
-.main {
-  padding: 100px 20px 30px; /* top padding increased to avoid topbar overlap */
-}
+.main { padding: 100px 20px 30px; }
+.container { max-width:1250px; margin:auto; }
 
-.container {
-  max-width: 1250px;
-  margin: auto;
-}
+h1 { font-size:2rem; color:var(--primary); font-weight:700; margin-bottom:20px; }
 
-h1 {
-  font-size: 2rem;
-  color: var(--primary);
-  font-weight: 700;
-  margin-bottom: 20px;
-}
-
-#msg {
-  font-size: 0.95rem;
-  color: #6b7280;
-  margin-bottom: 20px;
-  font-style: italic;
-}
+#msg { font-size:0.95rem; color:#6b7280; margin-bottom:20px; font-style:italic; }
 
 #searchBar {
-  padding: 12px 15px;
+  padding:12px 15px;
   border-radius: var(--radius);
-  border: 1px solid var(--border);
-  width: 100%;
-  margin-bottom: 25px;
-  font-size: 0.95rem;
-  background: #ffffff;
+  border:1px solid var(--border);
+  width:100%;
+  margin-bottom:25px;
+  font-size:0.95rem;
+  background:#fff;
   color: var(--text-dark);
 }
+#searchBar::placeholder { color:#9ca3af; }
 
-#searchBar::placeholder {
-  color: #9ca3af;
-}
-
-/* Summary cards above table */
+/* Summary cards */
 .summary-cards {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
+  display:flex; gap:15px; margin-bottom:20px; flex-wrap:wrap;
 }
-
 .summary-card {
   background: var(--card-bg);
   border-radius: var(--radius);
-  padding: 15px 20px;
-  border: 1px solid var(--border);
-  flex: 1 1 200px;
-  text-align: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding:15px 20px;
+  border:1px solid var(--border);
+  flex:1 1 200px;
+  text-align:center;
+  box-shadow:0 2px 8px rgba(0,0,0,0.1);
+  cursor:pointer;
+  transition:0.2s ease;
 }
+.summary-card:hover { transform: translateY(-3px); box-shadow:0 4px 12px rgba(0,0,0,0.15); }
 
-.summary-card h2 {
-  margin: 0;
-  font-size: 1.5rem;
-  color: var(--text-dark);
-}
+.summary-card h2 { margin:0; font-size:1.5rem; color: var(--text-dark); }
+.summary-card p { margin:5px 0 0; font-size:0.9rem; color:#6b7280; }
 
-.summary-card p {
-  margin: 5px 0 0;
-  font-size: 0.9rem;
-  color: #6b7280;
-}
-
-/* SINGLE CARD CONTAINER */
+/* Table card */
 .table-card {
   background: var(--card-bg);
   border-radius: var(--radius);
-  padding: 20px;
-  border: 1px solid var(--border);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  overflow-x: auto;       
-  max-height: 700px;      
-  overflow-y: auto;       
+  padding:20px;
+  border:1px solid var(--border);
+  box-shadow:0 4px 15px rgba(0,0,0,0.1);
+  overflow-x:auto;
+  max-height:700px;
+  overflow-y:auto;
+}
+.table-card table { width:100%; border-collapse:collapse; }
+.table-card thead { background: var(--primary); color:#fff; position:sticky; top:0; z-index:1; }
+.table-card th, .table-card td { padding:12px 15px; text-align:left; border-bottom:1px solid var(--border); }
+.table-card tbody tr:nth-child(even){ background:#e5e7eb; }
+.table-card tbody tr:hover{ background:#d1d5db; }
+
+/* Stock Pills */
+.stock-pill { display:inline-block; padding:5px 12px; border-radius:50px; font-weight:bold; font-size:0.9rem; transition:0.2s ease; }
+.stock-zero { background-color:var(--red); color:#fff; }
+.stock-low { background-color:var(--yellow); color:#000; }
+.stock-normal { background-color:var(--normal-bg); color:var(--text-dark); }
+.stock-pill:hover{ transform:scale(1.1); }
+
+/* Modal */
+#stockModal {
+  display:none;
+  position:fixed;
+  top:0; left:0; right:0; bottom:0;
+  background:rgba(0,0,0,0.5);
+  justify-content:center;
+  align-items:center;
+  z-index:2000;
+  padding:10px;
+}
+#stockModal .modal-content {
+  background:#fff;
+  border-radius:var(--radius);
+  padding:20px;
+  max-width:800px;
+  width:100%;
+  max-height:80vh;
+  overflow:auto;
+}
+#stockModal h2 { margin-top:0; }
+#closeModal {
+  float:right; font-size:24px; cursor:pointer; color:var(--red); font-weight:bold;
 }
 
-.table-card table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.table-card thead {
-  background: var(--primary);
-  color: #ffffff;
-  position: sticky;       
-  top: 0;
-  z-index: 1;
-}
-
-.table-card th, .table-card td {
-  padding: 12px 15px;
-  text-align: left;
-  border-bottom: 1px solid var(--border);
-}
-
-.table-card tbody tr:nth-child(even) {
-  background: #e5e7eb;
-}
-
-.table-card tbody tr:hover {
-  background: #d1d5db;
-}
-
-/* Stock Highlights as pill-shaped ovals */
-.stock-pill {
-  display: inline-block;
-  padding: 5px 12px;
-  border-radius: 50px; 
-  text-align: center;
-  font-weight: bold;
-  font-size: 0.9rem;
-  transition: 0.2s ease;
-}
-
-.stock-zero { background-color: var(--red); color: #ffffff; }
-.stock-low { background-color: var(--yellow); color: #000000; }
-.stock-normal { background-color: var(--normal-bg); color: var(--text-dark); }
-
-.stock-pill:hover {
-  transform: scale(1.1);
-}
-
-@media (max-width: 800px) {
-  .main { padding: 80px 20px 20px; }
-  .table-card th, .table-card td { padding: 10px; }
-  .summary-cards { flex-direction: column; }
+/* Responsive */
+@media(max-width:800px){
+  .main{ padding:80px 20px 20px; }
+  .table-card th,.table-card td{ padding:10px; }
+  .summary-cards{ flex-direction:column; }
 }
 </style>
 </head>
-
 <body>
 
 <!-- Top Bar -->
@@ -221,22 +178,23 @@ h1 {
 
     <input type="text" id="searchBar" placeholder="🔍 Search Product Code..." onkeyup="searchProductCode()">
 
-    <!-- Summary Cards Above Table -->
+    <!-- Summary Cards -->
     <div class="summary-cards">
-      <div class="summary-card">
+      <div class="summary-card" id="totalStockCard">
         <h2 id="totalStock">0</h2>
         <p>Total Stock</p>
       </div>
-      <div class="summary-card">
+      <div class="summary-card" id="lowStockCard">
         <h2 id="lowStock">0</h2>
         <p>Low Stock (&lt;20)</p>
       </div>
-      <div class="summary-card">
+      <div class="summary-card" id="outStockCard">
         <h2 id="outStock">0</h2>
         <p>Out of Stock</p>
       </div>
     </div>
 
+    <!-- Table -->
     <div class="table-card" id="tableContainer">
       <table>
         <thead>
@@ -246,9 +204,27 @@ h1 {
             <th>Current Stock</th>
           </tr>
         </thead>
-        <tbody>
-          <!-- Products injected here by JS -->
-        </tbody>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="stockModal">
+  <div class="modal-content">
+    <span id="closeModal">&times;</span>
+    <h2 id="modalTitle">Stock Details</h2>
+    <div style="overflow-x:auto; max-height:60vh;">
+      <table style="width:100%; border-collapse:collapse;">
+        <thead style="background:var(--primary); color:#fff; position:sticky; top:0;">
+          <tr>
+            <th style="padding:10px;">Product Code</th>
+            <th style="padding:10px;">Description</th>
+            <th style="padding:10px;">Qty</th>
+          </tr>
+        </thead>
+        <tbody id="modalBody"></tbody>
       </table>
     </div>
   </div>
@@ -290,49 +266,67 @@ async function renderTable(){
   const snapshot = await firebase.database().ref('inventory_items').once('value');
   const data = snapshot.val() || {};
   const items = Object.entries(data).map(([id,i])=>({
-    id,
-    code:i.code||'',
-    description:i.description||'',
-    qty:i.qty??0
+    id, code:i.code||'', description:i.description||'', qty:i.qty??0
   })).sort((a,b)=>a.code.localeCompare(b.code));
 
-  let totalStock = 0, lowStock = 0, outStock = 0;
+  let totalStock=0, lowStock=0, outStock=0;
 
   for(const item of items){
-    products[item.id] = item;
-    const tr = document.createElement('tr');
+    products[item.id]=item;
+    const tr=document.createElement('tr');
 
-    let stockClass = 'stock-normal';
-    if(item.qty === 0) { stockClass = 'stock-zero'; outStock++; }
-    else if(item.qty < 20) { stockClass = 'stock-low'; lowStock++; }
+    let stockClass='stock-normal';
+    if(item.qty===0){ stockClass='stock-zero'; outStock++; }
+    else if(item.qty<20){ stockClass='stock-low'; lowStock++; }
 
-    totalStock += item.qty;
+    totalStock+=item.qty;
 
-    tr.innerHTML = `
-      <td>${item.code}</td>
-      <td>${item.description}</td>
-      <td><span class="stock-pill ${stockClass}">${item.qty}</span></td>
-    `;
+    tr.innerHTML=`<td>${item.code}</td><td>${item.description}</td><td><span class="stock-pill ${stockClass}">${item.qty}</span></td>`;
     tbody.appendChild(tr);
   }
 
-  document.getElementById('totalStock').textContent = totalStock;
-  document.getElementById('lowStock').textContent = lowStock;
-  document.getElementById('outStock').textContent = outStock;
-
+  document.getElementById('totalStock').textContent=totalStock;
+  document.getElementById('lowStock').textContent=lowStock;
+  document.getElementById('outStock').textContent=outStock;
   document.getElementById('msg').textContent=`✅ Loaded ${items.length} products.`;
 }
 
-function searchProductCode() {
-  const input = document.getElementById('searchBar');
-  const filter = input.value.toLowerCase();
-  const tbody = document.querySelector('#tableContainer tbody');
-  const trs = tbody.getElementsByTagName('tr');
-  for(let i=0; i<trs.length; i++){
-    const code = trs[i].getElementsByTagName('td')[0].textContent;
-    trs[i].style.display = code.toLowerCase().includes(filter) ? '' : 'none';
-  }
+// Search function
+function searchProductCode(){
+  const filter=document.getElementById('searchBar').value.toLowerCase();
+  document.querySelectorAll('#tableContainer tbody tr').forEach(tr=>{
+    const code=tr.getElementsByTagName('td')[0].textContent.toLowerCase();
+    tr.style.display=code.includes(filter)?'':'none';
+  });
 }
+
+// Modal logic
+const stockModal = document.getElementById('stockModal');
+const modalTitle = document.getElementById('modalTitle');
+const modalBody = document.getElementById('modalBody');
+document.getElementById('closeModal').onclick = ()=> stockModal.style.display='none';
+window.onclick = e => { if(e.target===stockModal) stockModal.style.display='none'; };
+
+function openStockModal(type){
+  modalBody.innerHTML='';
+  modalTitle.textContent = type==='low'?'Low Stock Items':'Out of Stock Items';
+  const filtered = Object.values(products).filter(p=>{
+    return type==='low'? (p.qty>0 && p.qty<20) : p.qty===0;
+  });
+  filtered.forEach(item=>{
+    const tr=document.createElement('tr');
+    let stockClass='stock-normal';
+    if(item.qty===0) stockClass='stock-zero';
+    else if(item.qty<20) stockClass='stock-low';
+    tr.innerHTML=`<td>${item.code}</td><td>${item.description}</td><td><span class="stock-pill ${stockClass}">${item.qty}</span></td>`;
+    modalBody.appendChild(tr);
+  });
+  stockModal.style.display='flex';
+}
+
+// Click handlers
+document.getElementById('lowStockCard').onclick = ()=> openStockModal('low');
+document.getElementById('outStockCard').onclick = ()=> openStockModal('out');
 
 renderTable();
 </script>
