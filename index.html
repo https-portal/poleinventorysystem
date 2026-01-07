@@ -274,25 +274,28 @@ table th, table td {
 </table>
 
 <!-- SUMMARY -->
-<div class="summary-card">
-    <h4>Total Class A</h4>
-    <span id="totalClassA">0</span>
-</div>
+<div class="summary-row">
+    <div class="summary-card">
+        <h4>Total Class A</h4>
+        <span id="totalClassA">0</span>
+    </div>
 
     <div class="summary-card">
         <h4>Total Class B</h4>
-        <span>1,500</span>
+        <span id="totalClassB">0</span>
     </div>
+
     <div class="summary-card">
-        <h4>Total Withdrwan</h4>
+        <h4>Total Withdrawn</h4>
         <span>350</span>
     </div>
 
-     <div class="summary-card">
+    <div class="summary-card">
         <h4>Total Produce</h4>
         <span>350</span>
     </div>
 </div>
+
 
 <!-- MODAL -->
 <div id="manageModal" class="modal">
@@ -393,17 +396,16 @@ async function renderTable(){
       id,
       code: i.code || '',
       description: i.description || '',
-      qty: i.qty ?? 0
+      qty: Number(i.qty) || 0
     }))
     .sort((a, b) => a.code.localeCompare(b.code));
 
-  // 🔹 SAME FORMULA STYLE AS YOUR WORKING CODE
   let totalClassA = 0;
+  let totalClassB = 0; // intentionally zero
 
   for (const item of items) {
     products[item.id] = item;
 
-    // ----- TABLE -----
     const tr = document.createElement('tr');
     const badgeClass = item.qty < 10 ? 'badge-low' : 'badge-high';
 
@@ -419,16 +421,15 @@ async function renderTable(){
     opt.textContent = item.code;
     selectProduct.appendChild(opt);
 
-    // ----- TOTAL CLASS A (SUM OF QTY) -----
-    if (item.code.startsWith('A-')) {
-      totalClassA += item.qty;   // ✅ SAME FORMULA AS BEFORE
-    }
+    // ✅ SAME FORMULA AS WORKING INVENTORY
+    totalClassA += item.qty;
   }
 
-  // 🔹 UPDATE SUMMARY CARD
-  document.getElementById('totalClassA').textContent =
-    totalClassA.toLocaleString();
+  document.getElementById('totalClassA').textContent = totalClassA.toLocaleString();
+  document.getElementById('totalClassB').textContent = totalClassB.toLocaleString();
 }
+
+
 
 
 
@@ -563,4 +564,3 @@ window.onclick = e => { if(e.target===manageModal) manageModal.style.display='no
 
 </body>
 </html>
-
