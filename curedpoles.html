@@ -1,210 +1,203 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Available Cured Stock</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Cured Stock | Pole Inventory</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<style>
-:root {
-  --primary: #0ea5e9;
-  --text-dark: #1f2937;
-  --bg: #ffffff;
-  --card-bg: #f3f4f6;
-  --border: #d1d5db;
-  --radius: 12px;
-  --red: #dc2626;
-  --yellow: #facc15;
-  --normal-bg: #cbd5e1;
-}
+  <style>
+    :root {
+      --primary: #6366f1;
+      --secondary: #0ea5e9;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --bg-body: #f8fafc;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+    }
 
-/* --- Reset and body --- */
-body {
-  font-family: "Inter", "Segoe UI", Roboto, sans-serif;
-  background: var(--bg);
-  margin: 0;
-  padding: 0;
-  color: var(--text-dark);
-}
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { background: var(--bg-body); color: var(--text-main); }
 
-/* --- Top Bar --- */
-.topbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 60px;
-  background: var(--primary);
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  z-index: 1000;
-}
+    /* --- Header --- */
+    header {
+      background: #fff;
+      padding: 16px 0;
+      border-bottom: 1px solid #e2e8f0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .container { max-width: 1000px; margin: 0 auto; width: 92%; }
+    .header-flex { display: flex; justify-content: space-between; align-items: center; }
 
-.topbar .container {
-  max-width: 900px;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 16px;
-}
+    .logo-area { display: flex; align-items: center; gap: 10px; }
+    .badge { background: #e0f2fe; color: var(--secondary); padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
 
-.topbar button {
-  background: white;
-  color: var(--primary);
-  border: none;
-  border-radius: var(--radius);
-  padding: 8px 12px;
-  cursor: pointer;
-  font-weight: 600;
-}
+    .btn-nav {
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      background: white;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.2s;
+    }
+    .btn-nav:hover { background: #f1f5f9; }
 
-/* --- Main content --- */
-.main {
-  max-width: 900px;
-  margin: 80px auto 24px auto; /* top margin to avoid topbar */
-  padding: 16px;
-}
+    /* --- Main --- */
+    main { padding: 30px 0; }
+    .info-banner {
+      background: #eff6ff;
+      border-left: 4px solid var(--secondary);
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 25px;
+      font-size: 14px;
+      color: #1e40af;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
-/* --- Controls --- */
-#controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 20px;
-  align-items: center;
-}
+    /* Controls */
+    .controls-card {
+      background: white;
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: flex-end;
+      gap: 15px;
+    }
+    .input-group { flex: 1; }
+    .input-group label { display: block; font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; }
+    
+    input[type="date"] {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1.5px solid #e2e8f0;
+      font-weight: 600;
+      background: #f8fafc;
+    }
 
-input, select, button {
-  padding: 8px 12px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  font-size: 0.95rem;
-}
+    .btn-show {
+      background: var(--primary);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 12px;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-show:hover { background: #4f46e5; }
 
-/* --- Table Card --- */
-.table-card {
-  background: var(--card-bg);
-  border-radius: var(--radius);
-  padding: 16px;
-  border: 1px solid var(--border);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  overflow-x: auto;
-  max-height: 600px; 
-  overflow-y: auto;
-}
+    /* Table */
+    .table-card {
+      background: white;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+      overflow-x: auto;
+    }
+    table { width: 100%; border-collapse: collapse; min-width: 700px; }
+    th { padding: 16px; text-align: left; background: #f8fafc; font-size: 13px; color: var(--text-muted); font-weight: 700; }
+    td { padding: 16px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
 
-table {
-  width: 100%;
-  min-width: 600px;
-  border-collapse: collapse;
-}
+    .ready-pill {
+      background: #ecfdf5;
+      color: var(--success);
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 13px;
+      display: inline-block;
+    }
 
-th, td {
-  padding: 12px;
-  text-align: left;
-  border-bottom: 1px solid var(--border);
-}
+    /* Loading Spinner */
+    .loading-overlay {
+      display: none;
+      text-align: center;
+      padding: 40px;
+    }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid var(--primary);
+      border-radius: 50%;
+      margin: 0 auto 10px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-th {
-  background: var(--primary);
-  color: white;
-  position: sticky;
-  top: 0;
-  z-index: 1;
-}
-
-tbody tr:nth-child(even) {
-  background: #e5e7eb;
-}
-
-tbody tr:hover {
-  background: #d1d5db;
-}
-
-/* --- Stock Pills --- */
-.stock-pill {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 50px;
-  font-weight: bold;
-  font-size: 0.9rem;
-}
-
-.stock-zero { background-color: var(--red); color: #fff; }
-.stock-low { background-color: var(--yellow); color: #000; }
-.stock-normal { background-color: var(--normal-bg); color: var(--text-dark); }
-
-
-/* Spinner animation */
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 5px solid #cbd5e1; /* Light grey background */
-  border-top: 5px solid #0ea5e9; /* Primary color */
-  border-radius: 50%;
-  margin: auto;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-
-</style>
+    @media (max-width: 600px) {
+      .controls-card { flex-direction: column; align-items: stretch; }
+    }
+  </style>
 </head>
-
 <body>
 
-<!-- Top Bar -->
-<div class="topbar">
-  <div class="container">
-    <h2>Available Cured Stock</h2>
-    <a href="index.html"><button>Dashboard</button></a>
+<header>
+  <div class="container header-flex">
+    <div class="logo-area">
+      <span class="badge">Quality Control</span>
+      <h2 style="font-size: 18px; font-weight: 800;">Available Cured Stock</h2>
+    </div>
+    <button class="btn-nav" onclick="window.location.href='index.html'">
+      <i class="material-icons">dashboard</i> Dashboard
+    </button>
   </div>
-</div>
+</header>
 
-<div class="main">
-  <!-- Controls -->
-  <div id="controls">
-    <label>Select Date: <input type="date" id="datePicker"></label>
-    <button id="showBtn">Show Cured Poles</button>
+<main class="container">
+  <div class="info-banner">
+    <i class="material-icons">info</i>
+    <span>Stock is considered <b>Cured</b> only after 14 days of production. This report automatically subtracts "fresh" stock from your totals.</span>
   </div>
 
+  <div class="controls-card">
+    <div class="input-group">
+      <label>Availability Date</label>
+      <input type="date" id="datePicker">
+    </div>
+    <button id="showBtn" class="btn-show">
+      <i class="material-icons">verified</i> Show Cured Poles
+    </button>
+  </div>
 
+  <div id="loading" class="loading-overlay">
+    <div class="spinner"></div>
+    <p style="font-weight: 600; color: var(--primary);">Calculating readiness...</p>
+  </div>
 
-  <!-- Loading indicator -->
-<!-- Loading indicator -->
-<!-- Loading indicator -->
-<div id="loading" style="display:none; text-align:center; margin-bottom:10px;">
-  <div class="spinner"></div>
-  <div style="margin-top:8px; font-weight:600; color:#0ea5e9;">Loading Cured Stock...</div>
-</div>
-
-
-  <!-- Table -->
-  <div class="table-card">
+  <div class="table-card" id="resultCard" style="display: none;">
     <table id="stockTable">
       <thead>
         <tr>
-          <th>Code</th>
+          <th>Product Code</th>
           <th>Description</th>
-          <th>Current Stock</th>
-          <th>Produced (14 days ago)</th>
-          <th>Cured Total</th>
+          <th>Total Warehouse</th>
+          <th>Still Curing ( < 14d )</th>
+          <th>Ready to Ship</th>
         </tr>
       </thead>
       <tbody></tbody>
     </table>
   </div>
-</div>
+</main>
 
 <script>
 const firebaseConfig = {
@@ -221,10 +214,9 @@ const firebaseConfig = {
 let cachedInventory = {};
 let firebaseLoaded = false;
 
-// Load Firebase once
 async function loadFirebase() {
-  if (firebaseLoaded) return Promise.resolve();
-  return new Promise((resolve, reject) => {
+  if (firebaseLoaded) return;
+  return new Promise((resolve) => {
     const s1 = document.createElement('script');
     s1.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
     s1.onload = () => {
@@ -235,101 +227,84 @@ async function loadFirebase() {
         firebaseLoaded = true;
         resolve();
       };
-      s2.onerror = reject;
       document.head.appendChild(s2);
     };
-    s1.onerror = reject;
     document.head.appendChild(s1);
   });
 }
 
-// Load inventory once
-async function loadInventory() {
-  if (Object.keys(cachedInventory).length) return cachedInventory;
-  await loadFirebase();
-  const db = firebase.database();
-  const invRef = db.ref("inventory_items");
-  const invSnap = await invRef.once("value");
-  cachedInventory = invSnap.val() || {};
-  return cachedInventory;
-}
-
-// Show cured stock
-async function showCuredStock(dateInput) {
-  const inventory = await loadInventory();
-  const db = firebase.database();
-  const prodRef = db.ref("daily_production");
-  const selectedDate = new Date(dateInput);
-  const prodSnap = await prodRef.once("value");
-  const allProduction = prodSnap.val() || {};
-
-  const tbody = document.querySelector("#stockTable tbody");
-  tbody.innerHTML = ""; // always clear table first
-
-  for (const [code, item] of Object.entries(inventory)) {
-    const desc = item.description || "-";
-    const currentStock = item.qty || 0;
-
-    let produced14DaysAgo = 0;
-    let producedLess14Days = 0;
-
-    for (const dateKey in allProduction) {
-      const prodDate = new Date(dateKey);
-      const diffDays = (selectedDate - prodDate) / (1000*60*60*24);
-      const dailyProd = allProduction[dateKey];
-      for (const key in dailyProd) {
-        if (dailyProd[key].code === code) {
-          const qty = parseInt(dailyProd[key].qty) || 0;
-          if (diffDays >= 14) produced14DaysAgo += qty;
-          else if (diffDays > 0 && diffDays < 14) producedLess14Days += qty;
-        }
-      }
-    }
-
-    let curedTotal = currentStock - producedLess14Days;
-    if (curedTotal < 0) curedTotal = 0;
-
-    const tr = document.createElement("tr");
-    let stockClass = 'stock-normal';
-    if (curedTotal === 0) stockClass = 'stock-zero';
-    else if (curedTotal < 20) stockClass = 'stock-low';
-
-    tr.innerHTML = `
-      <td>${code}</td>
-      <td>${desc}</td>
-      <td><span class="stock-pill ${stockClass}">${currentStock}</span></td>
-      <td>${produced14DaysAgo}</td>
-      <td><span class="stock-pill ${stockClass}">${curedTotal}</span></td>
-    `;
-    tbody.appendChild(tr);
-  }
-}
-
-// Function to handle showing stock
 async function handleShowStock() {
-  const date = document.getElementById("datePicker").value;
-  if (!date) return alert("Please select a date first.");
+  const dateVal = document.getElementById("datePicker").value;
+  if (!dateVal) return alert("Please select a date.");
 
-  // Show loading
-  const loading = document.getElementById("loading");
-  loading.style.display = "block";
+  const loader = document.getElementById("loading");
+  const tableCard = document.getElementById("resultCard");
+  
+  loader.style.display = "block";
+  tableCard.style.display = "none";
 
   try {
-    await showCuredStock(date);
+    await loadFirebase();
+    const db = firebase.database();
+    
+    const [invSnap, prodSnap] = await Promise.all([
+      db.ref("inventory_items").once("value"),
+      db.ref("daily_production").once("value")
+    ]);
+
+    const inventory = invSnap.val() || {};
+    const allProduction = prodSnap.val() || {};
+    const selectedDate = new Date(dateVal);
+    
+    const tbody = document.querySelector("#stockTable tbody");
+    tbody.innerHTML = "";
+
+    for (const [code, item] of Object.entries(inventory)) {
+      let freshStock = 0;
+
+      for (const dateKey in allProduction) {
+        const prodDate = new Date(dateKey);
+        const diffDays = (selectedDate - prodDate) / (1000*60*60*24);
+        
+        // If production was less than 14 days before the selected date
+        if (diffDays >= 0 && diffDays < 14) {
+          const dailyProd = allProduction[dateKey];
+          for (const key in dailyProd) {
+            if (dailyProd[key].code === code) {
+              freshStock += parseInt(dailyProd[key].qty) || 0;
+            }
+          }
+        }
+      }
+
+      const totalWarehouse = item.qty || 0;
+      const curedTotal = Math.max(0, totalWarehouse - freshStock);
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><b>${code}</b></td>
+        <td style="color:var(--text-muted)">${item.description || '-'}</td>
+        <td>${totalWarehouse}</td>
+        <td style="color:var(--danger); font-weight:600;">${freshStock}</td>
+        <td><span class="ready-pill">${curedTotal}</span></td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    tableCard.style.display = "block";
+  } catch (err) {
+    console.error(err);
+    alert("Error loading data.");
   } finally {
-    // Hide loading after data is loaded
-    loading.style.display = "none";
+    loader.style.display = "none";
   }
 }
 
+document.getElementById("showBtn").onclick = handleShowStock;
 
-// Attach button click
-document.getElementById("showBtn").addEventListener("click", handleShowStock);
-
-// Also attach date change event to auto-update table
-
+// Set default date to today
+document.getElementById('datePicker').valueAsDate = new Date();
 </script>
-
 
 </body>
 </html>

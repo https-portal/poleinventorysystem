@@ -1,77 +1,196 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Available Cured Stock</title>
+  <title>Available Cured Stock | EDL LIN</title>
+  
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
   <style>
-    body {
-      font-family: Segoe UI, Roboto, Arial;
-      max-width: 900px;
-      margin: 24px auto;
-      padding: 16px;
+    :root {
+      --primary: #10b981; /* Emerald Green */
+      --primary-dark: #065f46;
+      --bg-body: #f8fafc;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
     }
-    h1 { color: #0a8f00; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 6px;
-      text-align: left;
-    }
-    th {
-      background: #f0f0f0;
-    }
-    input, button, select {
-      padding: 8px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      margin-right: 6px;
-    }
-    button {
-      background: #0a8f00;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    #controls {
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+    
+    body { background: var(--bg-body); color: var(--text-main); padding: 20px; line-height: 1.5; }
+    .container { max-width: 1000px; margin: 0 auto; }
+
+    /* --- Header --- */
+    .header-area {
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
+      justify-content: space-between;
       align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .logo-section h1 {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* --- Cards --- */
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: var(--card-shadow);
+      margin-bottom: 24px;
+      border: 1px solid #f1f5f9;
+    }
+
+    .card h2 {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* --- Controls --- */
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      align-items: flex-end;
+    }
+
+    .input-group { display: flex; flex-direction: column; gap: 6px; }
+    .input-group label { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+
+    input, select {
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1.5px solid #e2e8f0;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1); }
+
+    /* --- Buttons --- */
+    button {
+      padding: 12px 20px;
+      border-radius: 12px;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .btn-outline { background: transparent; border: 1.5px solid #e2e8f0; color: var(--text-main); }
+    .btn-outline:hover { background: #f8fafc; }
+
+    /* --- Table --- */
+    .table-container { overflow-x: auto; margin-top: 10px; }
+    table { width: 100%; border-collapse: collapse; min-width: 700px; }
+    
+    th {
+      background: #f8fafc;
+      padding: 14px 16px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    td { padding: 16px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+
+    .badge-ready {
+      background: #ecfdf5;
+      color: #065f46;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-weight: 800;
+      display: inline-block;
+    }
+
+    /* --- Responsive --- */
+    @media (max-width: 768px) {
+      .header-area { flex-direction: column; gap: 15px; align-items: flex-start; }
+      .controls-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
-  <h1>Available Cured Stock</h1>
-  <div id="controls">
-    <label>Select Date: <input type="date" id="datePicker"></label>
-    <button id="showBtn">Show Cured Poles</button>
 
-    <!-- NEW: filter for export only -->
-    <label>Export Product Codes:</label>
-    <select id="codeSelect" multiple size="4" style="min-width:150px;"></select>
-
-    <button id="exportBtn">Export Selected</button>
+<div class="container">
+  <div class="header-area">
+    <div class="logo-section">
+      <h1><i class="material-icons">verified</i> Cured Stock</h1>
+    </div>
+    <button class="btn-outline" onclick="window.location.href='index.html'"><i class="material-icons">arrow_back</i> Dashboard</button>
   </div>
 
-  <table id="stockTable">
-    <thead>
-      <tr>
-        <th>Code</th>
-        <th>Description</th>
-        <th>Current Stock</th>
-        <th>Produced (14 days ago)</th>
-        <th>Cured Total</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <div class="card">
+    <h2><i class="material-icons" style="color:var(--primary)">event</i> Check Curing Status</h2>
+    <div class="controls-grid">
+      <div class="input-group">
+        <label>Select Date</label>
+        <input type="date" id="datePicker">
+      </div>
+      <button class="btn-primary" id="showBtn"><i class="material-icons">visibility</i> Show Results</button>
+      <div class="input-group">
+        <label>Search Table</label>
+        <input type="text" id="tableSearch" placeholder="Search Code/Desc..." onkeyup="filterTable()">
+      </div>
+    </div>
+  </div>
 
-  <script>
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:15px;">
+      <h2><i class="material-icons" style="color:var(--primary)">inventory_2</i> Inventory Breakdown</h2>
+      <div style="display:flex; gap:10px; align-items:flex-end;">
+        <div class="input-group">
+          <label>Select for Export</label>
+          <select id="codeSelect" multiple size="1" style="width:200px; min-height:45px;"></select>
+        </div>
+        <button class="btn-outline" id="exportBtn"><i class="material-icons">file_download</i> Export CSV</button>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table id="stockTable">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Description</th>
+            <th>Total Stock</th>
+            <th>Produced (≥14 Days)</th>
+            <th>Cured Ready</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="5" style="text-align:center; padding:40px; color:var(--text-muted)">Please select a date above to load stock data.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
     const firebaseConfig = {
       apiKey: "AIzaSyAzMFxfrYC8rHVgX3NPts6DXGMIsyoKeeY",
       authDomain: "bikerental-71d2f.firebaseapp.com",
@@ -115,7 +234,7 @@
 
       const select = document.getElementById("codeSelect");
       select.innerHTML = "";
-      Object.keys(cachedInventory).forEach(code => {
+      Object.keys(cachedInventory).sort().forEach(code => {
         const opt = document.createElement("option");
         opt.value = code;
         opt.textContent = code;
@@ -125,13 +244,9 @@
 
     async function showCuredStock(dateInput) {
       await loadFirebase();
-
       const db = firebase.database();
       const prodRef = db.ref("daily_production");
-
       const selectedDate = new Date(dateInput);
-      const target14 = new Date(dateInput);
-      target14.setDate(target14.getDate() - 14);
       const prodSnap = await prodRef.once("value");
       const allProduction = prodSnap.val() || {};
 
@@ -139,19 +254,17 @@
       tbody.innerHTML = "";
       cachedTableData = [];
 
-      // Always show all inventory items
       for (const [code, item] of Object.entries(cachedInventory)) {
         const desc = item.description || "-";
         const currentStock = item.qty || 0;
-
         let produced14DaysAgo = 0;
         let producedLess14Days = 0;
 
         for (const dateKey in allProduction) {
           const prodDate = new Date(dateKey);
           const diffDays = (selectedDate - prodDate) / (1000 * 60 * 60 * 24);
-
           const dailyProd = allProduction[dateKey];
+          
           for (const key in dailyProd) {
             if (dailyProd[key].code === code) {
               const qty = parseInt(dailyProd[key].qty) || 0;
@@ -168,59 +281,51 @@
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>${code}</td>
-          <td>${desc}</td>
+          <td style="font-weight:700;">${code}</td>
+          <td style="color:var(--text-muted)">${desc}</td>
           <td>${currentStock}</td>
           <td>${produced14DaysAgo}</td>
-          <td><b>${curedTotal}</b></td>
+          <td><span class="badge-ready">${curedTotal}</span></td>
         `;
         tbody.appendChild(tr);
       }
     }
 
-    // Export CSV function (only selected codes)
-    function exportToCSV() {
-      if (!cachedTableData.length) {
-        alert("Please show data first before exporting.");
-        return;
+    function filterTable() {
+      const input = document.getElementById("tableSearch").value.toUpperCase();
+      const rows = document.querySelector("#stockTable tbody").getElementsByTagName("tr");
+      for (let i = 0; i < rows.length; i++) {
+        const txt = rows[i].textContent || rows[i].innerText;
+        rows[i].style.display = txt.toUpperCase().indexOf(input) > -1 ? "" : "none";
       }
+    }
 
+    function exportToCSV() {
+      if (!cachedTableData.length) return alert("Show data first.");
       const selectedCodes = Array.from(document.getElementById("codeSelect").selectedOptions).map(opt => opt.value);
-      if (!selectedCodes.length) {
-        alert("Please select at least one product code to export.");
-        return;
-      }
+      if (!selectedCodes.length) return alert("Select codes to export.");
 
       const filteredData = cachedTableData.filter(row => selectedCodes.includes(row.code));
-      if (!filteredData.length) {
-        alert("No matching product codes found in the table.");
-        return;
-      }
-
       let csv = "Code,Description,Current Stock,Produced (14 days ago),Cured Total\n";
-      filteredData.forEach(row => {
-        csv += `${row.code},${row.desc},${row.currentStock},${row.produced14DaysAgo},${row.curedTotal}\n`;
-      });
+      filteredData.forEach(r => csv += `${r.code},${r.desc},${r.currentStock},${r.produced14DaysAgo},${r.curedTotal}\n`);
 
       const blob = new Blob([csv], { type: "text/csv" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "CuredStockReport_Selected.csv";
+      a.download = `Cured_Stock_Report_${new Date().toISOString().split('T')[0]}.csv`;
       a.click();
-      URL.revokeObjectURL(url);
     }
 
     document.getElementById("showBtn").onclick = () => {
       const date = document.getElementById("datePicker").value;
-      if (!date) return alert("Please select a date first.");
+      if (!date) return alert("Select a date.");
       showCuredStock(date);
     };
 
     document.getElementById("exportBtn").onclick = exportToCSV;
-
-    // Load product codes for selection
     loadInventoryCodes();
-  </script>
+</script>
+
 </body>
 </html>

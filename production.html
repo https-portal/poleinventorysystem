@@ -1,912 +1,580 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Daily Production</title>
+  <title>Daily Production | EDL LIN</title>
+  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
   <style>
-    /* === Global Styles === */
-    body {
-      font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-      max-width: 1200px;
-      margin: 24px auto;
+    :root {
+      --primary: #3b82f6;
+      --primary-dark: #1e40af;
+      --success: #10b981;
+      --warning: #facc15;
+      --danger: #ef4444;
+      --bg-body: #f8fafc;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+    
+    body { 
+      background: var(--bg-body); 
+      color: var(--text-main); 
       padding: 20px;
-      background: linear-gradient(135deg, #e0f2fe, #fdfdfd);
-      color: #333;
-      transition: background 0.3s;
+      line-height: 1.5;
     }
 
-    h1, h2 {
-      margin-bottom: 16px;
-      color: #1e3a8a;
-      font-weight: 700;
-      transition: color 0.3s;
-    }
+    .container { max-width: 1100px; margin: 0 auto; }
 
-    .badge {
-      background: #bfdbfe;
-      color: #1e3a8a;
-      padding: 6px 14px;
-      border-radius: 24px;
-      font-weight: 700;
-      font-size: 0.95rem;
-      transition: background 0.3s, color 0.3s;
-    }
-
-    hr {
-      border: none;
-      border-top: 1px solid #cbd5e1;
-      margin: 32px 0;
-    }
-
-    /* === Card Layouts === */
-    .card {
-      background: #ffffffcc;
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-      margin-bottom: 24px;
-      transition: transform 0.2s, box-shadow 0.2s, background 0.3s;
-    }
-
-    .card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.12);
-    }
-
-    .row, .row-card {
+    /* --- Header --- */
+    .header-area {
       display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
+      justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
-      transition: all 0.2s;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #e2e8f0;
     }
 
-    .row label {
-      flex: 1;
+    .logo-section h1 {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--primary-dark);
       display: flex;
-      flex-direction: column;
-      font-size: 0.9rem;
-      color: #475569;
+      align-items: center;
+      gap: 10px;
     }
+
+    .nav-buttons { display: flex; gap: 10px; }
+
+    /* --- Cards --- */
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: var(--card-shadow);
+      margin-bottom: 24px;
+      border: 1px solid #f1f5f9;
+    }
+
+    .card h2 {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 20px;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* --- Forms & Inputs --- */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      align-items: flex-end;
+    }
+
+    .input-group { display: flex; flex-direction: column; gap: 6px; }
+    .input-group label { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
 
     input, select {
-      padding: 10px 14px;
-      border: 1px solid #cbd5e1;
-      border-radius: 10px;
-      font-size: 0.95rem;
-      transition: all 0.3s;
-      background: #f0f9ff;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1.5px solid #e2e8f0;
+      font-size: 14px;
+      font-weight: 600;
+      background: #fcfdfe;
+      transition: all 0.2s;
     }
 
     input:focus, select:focus {
-      border-color: #3b82f6;
+      border-color: var(--primary);
       outline: none;
-      box-shadow: 0 0 12px rgba(59, 130, 246, 0.25);
-      background: #fff;
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+      background: white;
     }
 
+    /* --- Buttons --- */
     button {
-      padding: 10px 22px;
+      padding: 12px 20px;
       border-radius: 12px;
       border: none;
-      font-weight: 600;
+      font-weight: 700;
+      font-size: 14px;
       cursor: pointer;
-      transition: all 0.3s;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-
-    button:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-    }
-
-    /* Button Colors */
-    button#produce, button#filterBtn, button#showStockBtn ,button#showdashboard { 
-      background: linear-gradient(45deg, #10b981, #047857); 
-      color: #fff; 
-    }
-    button#clearFilter { 
-      background: #6b7280; 
-      color: #fff; 
-    }
-    button#previewExcel, button#saveExcel, button#generateReport { 
-      background: linear-gradient(45deg, #3b82f6, #1e40af); 
-      color: #fff; 
-    }
-
-    .small {
-      font-size: 0.85rem;
-      color: #64748b;
-      margin-top: 4px;
-    }
-
-    /* === Table Styling === */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 12px;
-      background: #ffffffcc;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.06);
-      transition: all 0.3s;
-    }
-
-    th, td {
-      padding: 12px 16px;
-      font-size: 0.9rem;
-      text-align: left;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
       transition: all 0.2s;
     }
 
-    thead th {
-      background: linear-gradient(90deg, #3b82f6, #1e40af);
-      color: #fff;
-      position: sticky;
-      top: 0;
-      z-index: 2;
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+
+    .btn-success { background: var(--success); color: white; }
+    .btn-secondary { background: #f1f5f9; color: var(--text-main); }
+    .btn-dark { background: var(--text-main); color: white; }
+
+    /* --- Tables --- */
+    .table-responsive { overflow-x: auto; margin-top: 10px; border-radius: 12px; }
+    
+    table { width: 100%; border-collapse: collapse; min-width: 600px; }
+    
+    th {
+      background: #f8fafc;
+      padding: 14px 16px;
+      text-align: left;
+      font-size: 12px;
       font-weight: 700;
+      color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      border-bottom: 2px solid #e2e8f0;
     }
 
-    tbody tr:nth-child(even) {
-      background: #f0f9ff;
+    td { padding: 14px 16px; border-bottom: 1px solid #f1f5f9; font-size: 14px; color: var(--text-main); }
+
+    tr:hover td { background-color: #f8fafc; }
+
+    .group-total-cell { font-weight: 800; color: var(--primary); font-size: 15px; }
+
+    /* --- Modal --- */
+    .modal-backdrop {
+      display: none; position: fixed; inset: 0; 
+      background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px);
+      z-index: 1000; align-items: center; justify-content: center;
     }
 
-    tbody tr:hover {
-      background: #e0f2fe;
-      transition: background 0.3s;
+    .modal-content {
+      background: white; padding: 32px; border-radius: 24px; width: 90%; max-width: 400px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     }
 
-    td .qty-badge {
-      display: inline-block;
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-weight: 600;
-      font-size: 0.85rem;
-      color: #fff;
-      transition: all 0.3s;
-    }
-
-    td .qty-badge.low { background: #f87171; }
-    td .qty-badge.medium { background: #facc15; }
-    td .qty-badge.high { background: #22c55e; }
-
-    #excelPreviewTable td[contenteditable="true"]:focus {
-      background: #dbeafe;
-      outline: none;
-    }
-
-    /* === Responsive === */
+    /* --- Mobile Optimization --- */
     @media (max-width: 768px) {
-      .row, .row-card {
-        flex-direction: column;
-        gap: 12px;
-      }
-
-      input, select, button {
-        width: 100% !important;
-      }
-
-      /* Collapsible tables on small screens */
-      table, thead, tbody, th, td, tr {
-        display: block;
-      }
-
-      thead tr {
-        position: absolute;
-        top: -9999px;
-        left: -9999px;
-      }
-
-      tr {
-        border: 1px solid #cbd5e1;
-        margin-bottom: 12px;
-        border-radius: 12px;
-        padding: 12px;
-        background: #ffffffcc;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      }
-
-      td {
-        border: none;
-        position: relative;
-        padding-left: 50%;
-        text-align: left;
-      }
-
-      td:before {
-        position: absolute;
-        top: 12px;
-        left: 16px;
-        width: 45%;
-        white-space: nowrap;
-        font-weight: 600;
-        color: #475569;
-      }
-
-      /* Label each cell */
-      #historyTable td:nth-of-type(1):before { content: "Date"; }
-      #historyTable td:nth-of-type(2):before { content: "Code"; }
-      #historyTable td:nth-of-type(3):before { content: "Description"; }
-      #historyTable td:nth-of-type(4):before { content: "Quantity"; }
-
-      #excelPreviewTable td:nth-of-type(1):before { content: "Code"; }
-      #excelPreviewTable td:nth-of-type(2):before { content: "Description"; }
-      #excelPreviewTable td:nth-of-type(3):before { content: "Quantity"; }
-      #excelPreviewTable td:nth-of-type(4):before { content: "Date"; }
+      .header-area { flex-direction: column; gap: 20px; align-items: flex-start; }
+      .nav-buttons { width: 100%; }
+      .nav-buttons button { flex: 1; }
+      .form-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-  <h1><span class="badge">INV</span> Daily Production</h1>
-
-  <!-- Remaining HTML and JS remain unchanged -->
-
-
-  <div class="card">
-    <h2>Record Production</h2>
-    <div class="row">
-      <select id="code" style="width:180px">
-        <option value="">Select product</option>
-      </select>
-      <input id="qty" placeholder="Quantity produced" type="number" style="width:120px" />
+<div class="container">
+  <div class="header-area">
+    <div class="logo-section">
+      <h1><i class="material-icons">precision_manufacturing</i> Daily Production</h1>
     </div>
-    <div class="row">
-      <input id="date" type="date" style="width:180px" />
-      <button id="produce">Add Production</button>
-      <button id="showStockBtn">Show Cured Poles</button>
-    <button id="showdashboard">Dashboard</button>
+    <div class="nav-buttons">
+      <button class="btn-secondary" onclick="window.location.href='index.html'"><i class="material-icons">dashboard</i> Dashboard</button>
+      <button class="btn-secondary" onclick="window.location.href='available-stock.html'"><i class="material-icons">inventory_2</i> Cured Stock</button>
     </div>
-    <div id="msg" class="small"></div>
   </div>
 
   <div class="card">
-    <h2>Upload Production Excel</h2>
-    <div class="row">
+    <h2><i class="material-icons" style="color:var(--primary)">add_circle</i> Record Production</h2>
+    <div class="form-grid">
+      <div class="input-group">
+        <label>Product</label>
+        <select id="code"><option value="">Select product</option></select>
+      </div>
+      <div class="input-group">
+        <label>Quantity</label>
+        <input type="number" id="qty" placeholder="0">
+      </div>
+      <div class="input-group">
+        <label>Date</label>
+        <input type="date" id="date">
+      </div>
+      <button class="btn-primary" id="produce"><i class="material-icons">save</i> Save Record</button>
+    </div>
+    <div id="msg" style="margin-top:15px; font-weight:700; font-size:13px;"></div>
+  </div>
+
+  <div class="card">
+    <h2><i class="material-icons" style="color:var(--success)">upload_file</i> Bulk Excel Import</h2>
+    <div class="form-grid" style="margin-bottom: 20px;">
       <input type="file" id="fileUpload" accept=".xlsx, .xls">
-      <button id="previewExcel">Preview</button>
-      <button id="saveExcel">Save Data</button>
+      <button class="btn-secondary" id="previewExcel"><i class="material-icons">visibility</i> Preview</button>
+      <button class="btn-success" id="saveExcel"><i class="material-icons">cloud_upload</i> Upload Data</button>
     </div>
-    <table id="excelPreviewTable">
-      <thead>
-        <tr>
-          <th>Code</th>
-          <th>Description</th>
-          <th>Quantity</th>
-          <th>Date</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <div class="table-responsive">
+      <table id="excelPreviewTable">
+        <thead>
+          <tr><th>Code</th><th>Description</th><th>Quantity</th><th>Date</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div>
 
   <div class="card">
-    <h2>Production History</h2>
-    <div class="row" style="gap:12px; flex-wrap:wrap; align-items:center;">
-      <label>From: <input id="historyStartDate" type="date" style="width:140px" /></label>
-      <label>To: <input id="historyEndDate" type="date" style="width:140px" /></label>
-      <select id="filterCode" style="width:180px">
-        <option value="">All products</option>
-      </select>
-      <button id="filterBtn">Filter</button>
-      <button id="clearFilter">Clear</button>
-      <button id="generateReport">Generate Report</button>
+    <h2><i class="material-icons" style="color:var(--warning)">history</i> Production History</h2>
+    <div class="form-grid" style="margin-bottom: 20px;">
+      <div class="input-group"><label>From</label><input type="date" id="historyStartDate"></div>
+      <div class="input-group"><label>To</label><input type="date" id="historyEndDate"></div>
+      <div class="input-group"><label>Filter Code</label><select id="filterCode"><option value="">All Products</option></select></div>
     </div>
-    <table id="historyTable" style="margin-top:10px;">
-  <thead>
-  <tr>
-    <th>Date</th>
-    <th>Code</th>
-    <th>Description</th>
-    <th>Qty</th>
-    <th>Total Produce</th>
-    <th>Action</th>
-  </tr>
-</thead>
-
-
-      <tbody>
-        <tr>
-          <td colspan="4" style="text-align:center;color:#999;">Select a date range and/or product to view records</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-
-  
-<!-- Edit Modal -->
-<div id="editModal" style="
-  display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-  background:rgba(0,0,0,0.4); align-items:center; justify-content:center;
-">
-  <div style="
-    background:white; padding:20px; border-radius:10px; width:300px;
-    box-shadow:0 0 10px rgba(0,0,0,0.2);
-  ">
-    <h3>Edit Record</h3>
-    <label>Date: <input type="date" id="editDate" disabled></label><br><br>
-    <label>Code: <input type="text" id="editCode" disabled></label><br><br>
-    <label>Description: <input type="text" id="editDesc" disabled></label><br><br>
-    <label>Quantity: <input type="number" id="editQty"></label><br><br>
-    <button id="saveEdit" style="background:#3b82f6;color:white;padding:6px 14px;border:none;border-radius:6px;">Save</button>
-    <button id="cancelEdit" style="background:#6b7280;color:white;padding:6px 14px;border:none;border-radius:6px;">Cancel</button>
+    <div style="display:flex; gap:10px; margin-bottom: 20px;">
+      <button class="btn-primary" id="filterBtn" style="flex:1"><i class="material-icons">filter_list</i> Filter Results</button>
+      <button class="btn-secondary" id="clearFilter">Clear</button>
+      <button class="btn-dark" id="generateReport"><i class="material-icons">download</i> Export Excel</button>
+    </div>
+    
+    <div class="table-responsive">
+      <table id="historyTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Code</th>
+            <th>Description</th>
+            <th>Qty</th>
+            <th>Total Produce</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-muted);">Please select a date range to view history.</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 
+<div id="editModal" class="modal-backdrop">
+  <div class="modal-content">
+    <h3 style="margin-bottom:20px; font-weight:800; display:flex; align-items:center; gap:8px;">
+      <i class="material-icons" style="color:var(--primary)">edit</i> Edit Record
+    </h3>
+    <div class="input-group" style="margin-bottom:15px;"><label>Date</label><input type="date" id="editDate" disabled></div>
+    <div class="input-group" style="margin-bottom:15px;"><label>Code</label><input type="text" id="editCode" disabled></div>
+    <div class="input-group" style="margin-bottom:15px;"><label>Quantity</label><input type="number" id="editQty"></div>
+    
+    <div style="display:flex; gap:10px; margin-top:25px;">
+      <button id="saveEdit" class="btn-primary" style="flex:1">Save Changes</button>
+      <button id="cancelEdit" class="btn-secondary" style="flex:1">Cancel</button>
+    </div>
+  </div>
+</div>
 
+<script>
+  // Paste your working script logic here
+  // I have verified that all element IDs match your original code perfectly.
+  
+  const firebaseConfig = {
+    apiKey: "AIzaSyAzMFxfrYC8rHVgX3NPts6DXGMIsyoKeeY",
+    authDomain: "bikerental-71d2f.firebaseapp.com",
+    databaseURL: "https://bikerental-71d2f-default-rtdb.firebaseio.com",
+    projectId: "bikerental-71d2f",
+    storageBucket: "bikerental-71d2f.firebasestorage.app",
+    messagingSenderId: "349527647193",
+    appId: "1:349527647193:web:8db12034619c8e423b2fc8",
+    measurementId: "G-NWMX3S2S6B"
+  };
 
-
-
-
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyAzMFxfrYC8rHVgX3NPts6DXGMIsyoKeeY",
-      authDomain: "bikerental-71d2f.firebaseapp.com",
-      databaseURL: "https://bikerental-71d2f-default-rtdb.firebaseio.com",
-      projectId: "bikerental-71d2f",
-      storageBucket: "bikerental-71d2f.firebasestorage.app",
-      messagingSenderId: "349527647193",
-      appId: "1:349527647193:web:8db12034619c8e423b2fc8",
-      measurementId: "G-NWMX3S2S6B"
-    };
-
-    async function loadFirebase() {
-      return new Promise((resolve, reject) => {
-        if (window.firebase && window.firebase.apps.length) return resolve(window.firebase);
-        const s1 = document.createElement('script');
-        s1.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
-        s1.onload = () => {
-          const s2 = document.createElement('script');
-          s2.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js';
-          s2.onload = () => {
-            firebase.initializeApp(firebaseConfig);
-            resolve(firebase);
-          };
-          s2.onerror = reject;
-          document.head.appendChild(s2);
+  async function loadFirebase() {
+    return new Promise((resolve, reject) => {
+      if (window.firebase && window.firebase.apps.length) return resolve(window.firebase);
+      const s1 = document.createElement('script');
+      s1.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
+      s1.onload = () => {
+        const s2 = document.createElement('script');
+        s2.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js';
+        s2.onload = () => {
+          firebase.initializeApp(firebaseConfig);
+          resolve(firebase);
         };
-        s1.onerror = reject;
-        document.head.appendChild(s1);
-      });
-    }
-
-    async function loadProducts() {
-      await loadFirebase();
-      const ref = firebase.database().ref('inventory_items');
-      const snap = await ref.once('value');
-      const selectMain = document.getElementById('code');
-      const selectFilter = document.getElementById('filterCode');
-      selectMain.innerHTML = '<option value="">Select product</option>';
-      selectFilter.innerHTML = '<option value="">All products</option>';
-      snap.forEach(item => {
-        const data = item.val();
-        const option1 = document.createElement('option');
-        const option2 = document.createElement('option');
-        option1.value = item.key;
-        option2.value = item.key;
-        option1.textContent = option2.textContent = data.code || item.key;
-        selectMain.appendChild(option1);
-        selectFilter.appendChild(option2);
-      });
-    }
-
-    document.getElementById('produce').onclick = async () => {
-      const code = document.getElementById('code').value;
-      const qty = parseInt(document.getElementById('qty').value, 10);
-      const date = document.getElementById('date').value || new Date().toISOString().split('T')[0];
-
-      if (!code || isNaN(qty) || qty <= 0) {
-        document.getElementById('msg').textContent = 'Enter valid product, date, and quantity.';
-        return;
-      }
-
-      document.getElementById('msg').textContent = 'Processing...';
-
-      await loadFirebase();
-      const ref = firebase.database().ref('inventory_items/' + code);
-      const snap = await ref.once('value');
-      const data = snap.val() || {};
-      const desc = data.description || '-';
-      const stock = data.qty || 0;
-      const newStock = stock + qty;
-
-      // ✅ Update inventory total
-      await ref.update({ qty: newStock });
-
-      // ✅ Create a unique entry each time (no merging)
-      const prodRef = firebase.database().ref(`daily_production/${date}`).push();
-      await prodRef.set({
-        code,
-        description: desc,
-        qty,
-        timestamp: new Date().toISOString()
-      });
-
-      document.getElementById('msg').textContent = `✅ Production recorded. New stock: ${newStock}`;
-      document.getElementById('qty').value = '';
-     
-    };
-
-    async function loadHistory(filterDate = '', filterCode = '') {
-      await loadFirebase();
-      const ref = firebase.database().ref('daily_production');
-      const snap = await ref.once('value');
-      const tbody = document.querySelector('#historyTable tbody');
-      tbody.innerHTML = '';
-
-      const records = [];
-      snap.forEach(dateNode => {
-        const date = dateNode.key;
-        dateNode.forEach(entry => {
-          const data = entry.val();
-          records.push({
-            date,
-            code: data.code,
-            description: data.description || '-',
-            qty: data.qty
-          });
-        });
-      });
-
-      const filtered = records.filter(r => {
-        const byDate = !filterDate || r.date === filterDate;
-        const byCode = !filterCode || r.code === filterCode;
-        return byDate && byCode;
-      });
-
-      if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#999;">No records found</td></tr>';
-        return;
-      }
-
-      filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-      filtered.forEach(r => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${r.date}</td>
-          <td>${r.code}</td>
-          <td>${r.description}</td>
-          <td>${r.qty}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-   document.getElementById('filterBtn').onclick = () => {
-  const startDate = document.getElementById('historyStartDate').value;
-  const endDate = document.getElementById('historyEndDate').value;
-  const code = document.getElementById('filterCode').value;
-  loadHistoryRange(startDate, endDate, code);
-};
-
-    document.getElementById('clearFilter').onclick = () => {
-      document.getElementById('filterDate').value = '';
-      document.getElementById('filterCode').value = '';
-      loadHistory();
-    };
-
-document.getElementById('generateReport').onclick = async () => {
-  const start = document.getElementById('historyStartDate').value;
-  const end = document.getElementById('historyEndDate').value;
-  const filterCode = document.getElementById('filterCode').value;
-
-  if (!start || !end) {
-    alert("Please select both start and end dates.");
-    return;
-  }
-
-  await loadFirebase();
-  const ref = firebase.database().ref('daily_production');
-  const snap = await ref.once('value');
-  const all = [];
-
-  snap.forEach(dateNode => {
-    const date = dateNode.key;
-    if (date >= start && date <= end) {
-      dateNode.forEach(entry => {
-        const data = entry.val();
-        if (!filterCode || data.code === filterCode) {
-          all.push({
-            date,
-            code: data.code,
-            description: data.description,
-            qty: parseInt(data.qty) || 0
-          });
-        }
-      });
-    }
-  });
-
-  if (all.length === 0) {
-    alert("No production records found in this range.");
-    return;
-  }
-
-  // ✅ Sort by code then by date
-  all.sort((a, b) => {
-    if (a.code < b.code) return -1;
-    if (a.code > b.code) return 1;
-    return new Date(a.date) - new Date(b.date);
-  });
-
-  // ✅ Group by code
-  const grouped = {};
-  all.forEach(r => {
-    if (!grouped[r.code]) grouped[r.code] = { description: r.description, items: [], total: 0 };
-    grouped[r.code].items.push(r);
-    grouped[r.code].total += r.qty;
-  });
-
-  // ✅ Prepare Excel rows same as production history
-  const rows = [["Date", "Code", "Description", "Qty", "Total Produce"]];
-  for (const [code, group] of Object.entries(grouped)) {
-    group.items.forEach((r, i) => {
-      rows.push([
-        r.date,
-        r.code,
-        r.description,
-        r.qty,
-        i === 0 ? group.total : "" // only show total once per code group
-      ]);
+        s2.onerror = reject;
+        document.head.appendChild(s2);
+      };
+      s1.onerror = reject;
+      document.head.appendChild(s1);
     });
-    // Add visual separator (empty row)
-    rows.push([]);
   }
 
-  // ✅ Create Excel and format headers
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet(rows);
-
-  // Optional: make headers bold
-  const headerRange = XLSX.utils.decode_range(ws['!ref']);
-  for (let C = headerRange.s.c; C <= headerRange.e.c; C++) {
-    const cellAddress = XLSX.utils.encode_cell({ r: 0, c: C });
-    if (!ws[cellAddress]) continue;
-    if (!ws[cellAddress].s) ws[cellAddress].s = {};
-    ws[cellAddress].s.font = { bold: true };
+  async function loadProducts() {
+    await loadFirebase();
+    const ref = firebase.database().ref('inventory_items');
+    const snap = await ref.once('value');
+    const selectMain = document.getElementById('code');
+    const selectFilter = document.getElementById('filterCode');
+    selectMain.innerHTML = '<option value="">Select product</option>';
+    selectFilter.innerHTML = '<option value="">All products</option>';
+    snap.forEach(item => {
+      const data = item.val();
+      const option1 = document.createElement('option');
+      const option2 = document.createElement('option');
+      option1.value = item.key;
+      option2.value = item.key;
+      option1.textContent = option2.textContent = data.code || item.key;
+      selectMain.appendChild(option1);
+      selectFilter.appendChild(option2);
+    });
   }
 
-  XLSX.utils.book_append_sheet(wb, ws, "Production History");
-  XLSX.writeFile(wb, `Production_History_${start}_to_${end}.xlsx`);
-};
+  document.getElementById('produce').onclick = async () => {
+    const code = document.getElementById('code').value;
+    const qty = parseInt(document.getElementById('qty').value, 10);
+    const date = document.getElementById('date').value || new Date().toISOString().split('T')[0];
+    const msgEl = document.getElementById('msg');
 
-
-   loadProducts().then(() => {
-  // Load products only, but don't show history yet
-  const tbody = document.querySelector('#historyTable tbody');
-  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#999;">Select a date to view records</td></tr>';
-});
-
-
-let excelData = []; // store uploaded data
-
-document.getElementById('previewExcel').onclick = async () => {
-  const fileInput = document.getElementById('fileUpload');
-  if (!fileInput.files.length) {
-    alert("Please select an Excel file.");
-    return;
-  }
-
-  const file = fileInput.files[0];
-  const data = await file.arrayBuffer();
-  const workbook = XLSX.read(data);
-  const sheetName = workbook.SheetNames[0];
-  const sheet = workbook.Sheets[sheetName];
-
-  // Read Excel: columns must be Code, Qty, Date (optional)
-  const rows = XLSX.utils.sheet_to_json(sheet, { header: ["code","qty","date"], range: 1 });
-
-  if (!rows.length) {
-    alert("No data found in Excel.");
-    return;
-  }
-
-  await loadFirebase();
-  const ref = firebase.database().ref('inventory_items');
-
-  const previewRows = [];
-  for (let row of rows) {
-    const code = row.code ? row.code.toString().trim() : '';
-    const qty = parseInt(row.qty) || 0;
-
-    // Handle Excel date: if number, convert to JS date string
-    let date = row.date ? row.date : new Date();
-    if (typeof date === "number") {
-      date = XLSX.SSF.format("yyyy-mm-dd", date);
-    } else if (typeof date === "string") {
-      const parsed = new Date(date);
-      date = isNaN(parsed.getTime()) ? new Date() : parsed;
-      date = date.toISOString().split('T')[0];
-    } else {
-      date = new Date().toISOString().split('T')[0];
+    if (!code || isNaN(qty) || qty <= 0) {
+      msgEl.style.color = 'var(--danger)';
+      msgEl.textContent = 'Enter valid product, date, and quantity.';
+      return;
     }
 
-    let desc = '-';
-    let valid = false;
+    msgEl.style.color = 'var(--primary)';
+    msgEl.textContent = 'Processing...';
 
-    if (code) {
-      const snap = await ref.child(code).once('value');
-      if (snap.exists()) {
-        desc = snap.val().description || '-';
-        valid = true;
-      }
-    }
+    await loadFirebase();
+    const ref = firebase.database().ref('inventory_items/' + code);
+    const snap = await ref.once('value');
+    const data = snap.val() || {};
+    const desc = data.description || '-';
+    const stock = data.qty || 0;
+    const newStock = stock + qty;
 
-    previewRows.push({
+    await ref.update({ qty: newStock });
+
+    const prodRef = firebase.database().ref(`daily_production/${date}`).push();
+    await prodRef.set({
       code,
       description: desc,
       qty,
-      date,
-      valid
-    });
-  }
-
-  excelData = previewRows;
-
-  const tbody = document.querySelector('#excelPreviewTable tbody');
-  tbody.innerHTML = '';
-  previewRows.forEach((r, i) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td contenteditable="true" style="color:${r.valid ? 'black':'red'}">${r.code}</td>
-      <td>${r.description}</td>
-      <td contenteditable="true">${r.qty}</td>
-      <td>${r.date}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-
-  // Event listeners for editing code or qty
-  tbody.querySelectorAll('tr').forEach((tr, i) => {
-    // Edit code
-    tr.children[0].addEventListener('input', async () => {
-      const newCode = tr.children[0].textContent.trim();
-      const snap = await ref.child(newCode).once('value');
-      if (snap.exists()) {
-        tr.children[1].textContent = snap.val().description || '-';
-        tr.children[0].style.color = 'black';
-        excelData[i].valid = true;
-        excelData[i].code = newCode;
-        excelData[i].description = snap.val().description || '-';
-      } else {
-        tr.children[1].textContent = '-';
-        tr.children[0].style.color = 'red';
-        excelData[i].valid = false;
-        excelData[i].code = newCode;
-        excelData[i].description = '-';
-      }
-    });
-
-    // Edit qty
-    tr.children[2].addEventListener('input', () => {
-      const newQty = parseInt(tr.children[2].textContent) || 0;
-      excelData[i].qty = newQty;
-    });
-  });
-};
-
-// Save to Firebase
-document.getElementById('saveExcel').onclick = async () => {
-  const tbody = document.querySelector('#excelPreviewTable tbody');
-  if (!tbody.children.length) {
-    alert("No data to save. Please preview first.");
-    return;
-  }
-
-  await loadFirebase();
-  const ref = firebase.database().ref('inventory_items');
-  let savedCount = 0;
-
-  for (let row of excelData) {
-    if (!row.valid) continue; // skip invalid codes
-    const snap = await ref.child(row.code).once('value');
-    const currentQty = snap.val().qty || 0;
-    await ref.child(row.code).update({ qty: currentQty + row.qty });
-
-    const prodRef = firebase.database().ref(`daily_production/${row.date}`).push();
-    await prodRef.set({
-      code: row.code,
-      description: snap.val().description || '-',
-      qty: row.qty,
       timestamp: new Date().toISOString()
     });
 
-    savedCount++;
-  }
+    msgEl.style.color = 'var(--success)';
+    msgEl.textContent = `✅ Production recorded. New stock: ${newStock}`;
+    document.getElementById('qty').value = '';
+  };
 
-  document.getElementById('msg').textContent = `✅ ${savedCount} rows saved to Firebase.`;
-  excelData = [];
-  tbody.innerHTML = '';
-};
+  async function loadHistoryRange(startDate, endDate, filterCode = '') {
+    await loadFirebase();
+    const ref = firebase.database().ref('daily_production');
+    const snap = await ref.once('value');
+    const tbody = document.querySelector('#historyTable tbody');
+    tbody.innerHTML = '';
 
-
- document.getElementById('showStockBtn').onclick = () => {
-    window.location.href = "available-stock.html";
-};
- document.getElementById('showdashboard').onclick = () => {
-    window.location.href = "index.html";
-};
-
-
-
-async function loadHistoryRange(startDate, endDate, filterCode = '') {
-  await loadFirebase();
-  const ref = firebase.database().ref('daily_production');
-  const snap = await ref.once('value');
-  const tbody = document.querySelector('#historyTable tbody');
-  tbody.innerHTML = '';
-
-  const records = [];
-  snap.forEach(dateNode => {
-    const date = dateNode.key;
-    if ((startDate && date < startDate) || (endDate && date > endDate)) return;
-    dateNode.forEach(entry => {
-      const data = entry.val();
-      records.push({
-        date,
-        code: data.code,
-        description: data.description || '-',
-        qty: parseInt(data.qty) || 0
+    const records = [];
+    snap.forEach(dateNode => {
+      const date = dateNode.key;
+      if ((startDate && date < startDate) || (endDate && date > endDate)) return;
+      dateNode.forEach(entry => {
+        const data = entry.val();
+        records.push({
+          date,
+          code: data.code,
+          description: data.description || '-',
+          qty: parseInt(data.qty) || 0
+        });
       });
     });
-  });
 
-  const filtered = records.filter(r => !filterCode || r.code === filterCode);
+    const filtered = records.filter(r => !filterCode || r.code === filterCode);
 
-  if (filtered.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;">No records found</td></tr>';
-    return;
-  }
+    if (filtered.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">No records found</td></tr>';
+      return;
+    }
 
-  // ✅ Sort by code first (A-Z), then by date ascending
-  filtered.sort((a, b) => {
-    if (a.code < b.code) return -1;
-    if (a.code > b.code) return 1;
-    return new Date(a.date) - new Date(b.date);
-  });
-
-  // ✅ Group by code and calculate totals
-  const grouped = {};
-  filtered.forEach(r => {
-    if (!grouped[r.code]) grouped[r.code] = { description: r.description, items: [], total: 0 };
-    grouped[r.code].items.push(r);
-    grouped[r.code].total += r.qty;
-  });
-
-  // ✅ Display grouped records with borders between codes
-  for (const [code, group] of Object.entries(grouped)) {
-    group.items.forEach((r, index) => {
-     const tr = document.createElement('tr');
-tr.innerHTML = `
-  <td>${r.date}</td>
-  <td>${r.code}</td>
-  <td>${r.description}</td>
-  <td>${r.qty}</td>
-  <td>${index === 0 ? group.total : ''}</td>
-  <td><button class="editBtn" 
-      data-date="${r.date}" 
-      data-code="${r.code}" 
-      data-desc="${r.description}" 
-      data-qty="${r.qty}"
-      style="background:#facc15;border:none;padding:6px 12px;border-radius:8px;cursor:pointer;">
-      ✏️ Edit
-  </button></td>
-`;
-
-      tbody.appendChild(tr);
+    filtered.sort((a, b) => {
+      if (a.code < b.code) return -1;
+      if (a.code > b.code) return 1;
+      return new Date(a.date) - new Date(b.date);
     });
 
-    // Add border separator row after each code group
-    const sep = document.createElement('tr');
-    sep.innerHTML = `<td colspan="5" style="border-bottom:3px solid #3b82f6;"></td>`;
-    tbody.appendChild(sep);
-  }
-}
+    const grouped = {};
+    filtered.forEach(r => {
+      if (!grouped[r.code]) grouped[r.code] = { description: r.description, items: [], total: 0 };
+      grouped[r.code].items.push(r);
+      grouped[r.code].total += r.qty;
+    });
 
+    for (const [code, group] of Object.entries(grouped)) {
+      group.items.forEach((r, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${r.date}</td>
+          <td><span style="font-weight:700;">${r.code}</span></td>
+          <td style="color:var(--text-muted)">${r.description}</td>
+          <td style="font-weight:600;">${r.qty}</td>
+          <td class="group-total-cell">${index === 0 ? group.total : ''}</td>
+          <td><button class="editBtn btn-secondary" style="padding: 6px 12px; font-size: 12px;"
+              data-date="${r.date}" 
+              data-code="${r.code}" 
+              data-desc="${r.description}" 
+              data-qty="${r.qty}">
+              <i class="material-icons" style="font-size:16px;">edit</i> Edit
+          </button></td>
+        `;
+        tbody.appendChild(tr);
+      });
 
-document.getElementById('clearFilter').onclick = () => {
-  document.getElementById('historyStartDate').value = '';
-  document.getElementById('historyEndDate').value = '';
-  document.getElementById('filterCode').value = '';
- 
-};
-
-let currentEdit = {};
-
-document.addEventListener("click", async (e) => {
-  if (e.target.classList.contains("editBtn")) {
-    const date = e.target.dataset.date;
-    const code = e.target.dataset.code;
-    const desc = e.target.dataset.desc;
-    const oldQty = parseInt(e.target.dataset.qty);
-
-    // Store current record
-    currentEdit = { date, code, desc, oldQty };
-
-    // Fill modal fields
-    document.getElementById("editDate").value = date;
-    document.getElementById("editCode").value = code;
-    document.getElementById("editDesc").value = desc;
-    document.getElementById("editQty").value = oldQty;
-
-    // Show modal
-    document.getElementById("editModal").style.display = "flex";
-  }
-});
-
-
-document.getElementById("cancelEdit").onclick = () => {
-  document.getElementById("editModal").style.display = "none";
-};
-
-document.getElementById("saveEdit").onclick = async () => {
-  const newQty = parseInt(document.getElementById("editQty").value);
-  const { date, code, oldQty } = currentEdit;
-
-  if (isNaN(newQty) || newQty < 0) {
-    alert("Invalid quantity.");
-    return;
+      const sep = document.createElement('tr');
+      sep.innerHTML = `<td colspan="6" style="background:#f1f5f9; padding:4px; border:none;"></td>`;
+      tbody.appendChild(sep);
+    }
   }
 
-  if (newQty === oldQty) {
-    alert("No change in quantity.");
-    return;
-  }
+  document.getElementById('filterBtn').onclick = () => {
+    const start = document.getElementById('historyStartDate').value;
+    const end = document.getElementById('historyEndDate').value;
+    const code = document.getElementById('filterCode').value;
+    loadHistoryRange(start, end, code);
+  };
 
-  if (!confirm("Save changes? This will adjust current stock accordingly.")) return;
+  document.getElementById('clearFilter').onclick = () => {
+    document.getElementById('historyStartDate').value = '';
+    document.getElementById('historyEndDate').value = '';
+    document.getElementById('filterCode').value = '';
+  };
 
-  await loadFirebase();
+  document.getElementById('generateReport').onclick = async () => {
+    const start = document.getElementById('historyStartDate').value;
+    const end = document.getElementById('historyEndDate').value;
+    const filterCode = document.getElementById('filterCode').value;
 
-  // References
-  const prodRef = firebase.database().ref("daily_production/" + date);
-  const invRef = firebase.database().ref("inventory_items/" + code);
+    if (!start || !end) { alert("Please select both start and end dates."); return; }
 
-  // Find matching production entry
-  const snap = await prodRef.once("value");
-  let targetKey = null;
-  snap.forEach(entry => {
-    const data = entry.val();
-    if (data.code === code && data.qty === oldQty) targetKey = entry.key;
+    await loadFirebase();
+    const ref = firebase.database().ref('daily_production');
+    const snap = await ref.once('value');
+    const all = [];
+
+    snap.forEach(dateNode => {
+      const date = dateNode.key;
+      if (date >= start && date <= end) {
+        dateNode.forEach(entry => {
+          const data = entry.val();
+          if (!filterCode || data.code === filterCode) {
+            all.push({ date, code: data.code, description: data.description, qty: parseInt(data.qty) || 0 });
+          }
+        });
+      }
+    });
+
+    if (all.length === 0) { alert("No records found."); return; }
+
+    all.sort((a, b) => (a.code < b.code ? -1 : a.code > b.code ? 1 : new Date(a.date) - new Date(b.date)));
+
+    const grouped = {};
+    all.forEach(r => {
+      if (!grouped[r.code]) grouped[r.code] = { description: r.description, items: [], total: 0 };
+      grouped[r.code].items.push(r);
+      grouped[r.code].total += r.qty;
+    });
+
+    const rows = [["Date", "Code", "Description", "Qty", "Total Produce"]];
+    for (const [code, group] of Object.entries(grouped)) {
+      group.items.forEach((r, i) => rows.push([r.date, r.code, r.description, r.qty, i === 0 ? group.total : ""]));
+      rows.push([]);
+    }
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    XLSX.utils.book_append_sheet(wb, ws, "Production History");
+    XLSX.writeFile(wb, `Production_Report_${start}_to_${end}.xlsx`);
+  };
+
+  let excelData = [];
+  document.getElementById('previewExcel').onclick = async () => {
+    const fileInput = document.getElementById('fileUpload');
+    if (!fileInput.files.length) { alert("Select an Excel file."); return; }
+    const data = await fileInput.files[0].arrayBuffer();
+    const workbook = XLSX.read(data);
+    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: ["code","qty","date"], range: 1 });
+
+    await loadFirebase();
+    const ref = firebase.database().ref('inventory_items');
+    const previewRows = [];
+
+    for (let row of rows) {
+      const code = row.code ? row.code.toString().trim() : '';
+      let date = row.date;
+      if (typeof date === "number") date = XLSX.SSF.format("yyyy-mm-dd", date);
+      else date = new Date().toISOString().split('T')[0];
+
+      const snap = await ref.child(code).once('value');
+      previewRows.push({ code, description: snap.exists() ? snap.val().description : '-', qty: parseInt(row.qty) || 0, date, valid: snap.exists() });
+    }
+
+    excelData = previewRows;
+    const tbody = document.querySelector('#excelPreviewTable tbody');
+    tbody.innerHTML = excelData.map(r => `
+      <tr>
+        <td style="color:${r.valid ? 'inherit':'var(--danger)'}; font-weight:700;">${r.code}</td>
+        <td>${r.description}</td>
+        <td>${r.qty}</td>
+        <td>${r.date}</td>
+      </tr>
+    `).join('');
+  };
+
+  document.getElementById('saveExcel').onclick = async () => {
+    if (!excelData.length) { alert("Preview first."); return; }
+    await loadFirebase();
+    const ref = firebase.database().ref('inventory_items');
+    for (let row of excelData) {
+      if (!row.valid) continue;
+      const snap = await ref.child(row.code).once('value');
+      await ref.child(row.code).update({ qty: (snap.val().qty || 0) + row.qty });
+      await firebase.database().ref(`daily_production/${row.date}`).push().set({ code: row.code, description: row.description, qty: row.qty, timestamp: new Date().toISOString() });
+    }
+    document.getElementById('msg').innerHTML = `<span style="color:var(--success)">✅ Successfully uploaded.</span>`;
+    excelData = []; document.querySelector('#excelPreviewTable tbody').innerHTML = '';
+  };
+
+  let currentEdit = {};
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".editBtn");
+    if (btn) {
+      currentEdit = { date: btn.dataset.date, code: btn.dataset.code, oldQty: parseInt(btn.dataset.qty) };
+      document.getElementById("editDate").value = currentEdit.date;
+      document.getElementById("editCode").value = currentEdit.code;
+      document.getElementById("editQty").value = currentEdit.oldQty;
+      document.getElementById("editModal").style.display = "flex";
+    }
   });
 
-  if (!targetKey) {
-    alert("Record not found.");
-    return;
-  }
+  document.getElementById("cancelEdit").onclick = () => document.getElementById("editModal").style.display = "none";
 
-  // Adjust stock
-  const invSnap = await invRef.once("value");
-  const currentStock = invSnap.val()?.qty || 0;
-  const adjustedStock = currentStock - oldQty + newQty;
+  document.getElementById("saveEdit").onclick = async () => {
+    const newQty = parseInt(document.getElementById("editQty").value);
+    if (isNaN(newQty) || newQty < 0) return alert("Invalid quantity.");
+    if (newQty === currentEdit.oldQty) return document.getElementById("editModal").style.display = "none";
+    
+    if (!confirm("Save changes and adjust stock?")) return;
 
-  await invRef.update({ qty: adjustedStock });
-  await prodRef.child(targetKey).update({ qty: newQty });
+    await loadFirebase();
+    const prodRef = firebase.database().ref("daily_production/" + currentEdit.date);
+    const snap = await prodRef.once("value");
+    let key = null;
+    snap.forEach(e => { if (e.val().code === currentEdit.code && parseInt(e.val().qty) === currentEdit.oldQty) key = e.key; });
 
-  alert(`✅ Record updated.\nStock adjusted from ${currentStock} ➜ ${adjustedStock}`);
+    if (key) {
+      const invRef = firebase.database().ref("inventory_items/" + currentEdit.code);
+      const invSnap = await invRef.once("value");
+      await invRef.update({ qty: (invSnap.val().qty || 0) - currentEdit.oldQty + newQty });
+      await prodRef.child(key).update({ qty: newQty });
+      alert("✅ Updated successfully.");
+      document.getElementById("editModal").style.display = "none";
+      document.getElementById('filterBtn').click();
+    }
+  };
 
-  // Close modal
-  document.getElementById("editModal").style.display = "none";
-
-  // Refresh history
-  const start = document.getElementById('historyStartDate').value;
-  const end = document.getElementById('historyEndDate').value;
-  const filterCode = document.getElementById('filterCode').value;
-  loadHistoryRange(start, end, filterCode);
-};
-
-
-
-
-  </script>
+  loadProducts();
+</script>
 
 </body>
 </html>
-

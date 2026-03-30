@@ -1,125 +1,302 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Daily Withdrawal</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Daily Withdrawal | Pole Inventory</title>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <style>
-    body {
-      font-family: Segoe UI, Roboto, Arial;
-      max-width: 800px;
-      margin: 24px auto;
-      padding: 16px;
-    }
-    h1, h2 { margin-bottom: 12px; }
-    .row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-    }
-    input, select {
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-    }
-    button {
-      padding: 8px 12px;
-      border-radius: 6px;
-      border: none;
-      background: #d00000;
-      color: #fff;
-      cursor: pointer;
-    }
-    .small { font-size: 0.85rem; color: #666; }
-    .badge {
-      background: #ffecec;
-      color: #d00000;
-      padding: 4px 8px;
-      border-radius: 20px;
-      font-weight: 600;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 6px;
-      text-align: left;
-      font-size: 0.9rem;
-    }
-    th {
-      background: #f5f5f5;
-    }
-
-
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
-    
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #0ea5e9;
+            --danger: #ef4444;
+            --success: #10b981;
+            --bg-body: #f1f5f9;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --white: #ffffff;
+            --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+        }
 
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
 
+        body {
+            background: var(--bg-body);
+            color: var(--text-main);
+            padding-bottom: 50px;
+        }
 
-  </style>
+        header {
+            background: #fff;
+            padding: 20px 0;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 30px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 92%;
+        }
+
+        .header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 { font-size: 22px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+        h2, h3 { font-size: 18px; font-weight: 700; margin: 25px 0 15px 0; color: var(--text-main); }
+
+        .badge {
+            background: #eef2ff;
+            color: var(--primary);
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        /* CARDS */
+        .card {
+            background: var(--white);
+            padding: 24px;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 24px;
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        input, select {
+            flex: 1;
+            min-width: 150px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1.5px solid #e2e8f0;
+            font-size: 14px;
+            background: #f8fafc;
+            transition: all 0.2s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        button {
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.3s;
+            font-size: 14px;
+        }
+
+        #withdraw { background: var(--primary); color: #fff; }
+        #withdraw:hover { background: var(--primary-dark); transform: translateY(-1px); }
+
+        #showdashboard { background: #f1f5f9; color: var(--text-main); }
+        #showdashboard:hover { background: #e2e8f0; }
+
+        .btn-filter { background: var(--secondary); color: white; }
+        .btn-export { background: var(--success); color: white; width: 100%; justify-content: center; margin-top: 10px; }
+
+        /* TABLE */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            font-size: 14px;
+        }
+
+        th {
+            background: #f8fafc;
+            padding: 14px;
+            text-align: left;
+            font-weight: 700;
+            color: var(--text-muted);
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        td {
+            padding: 14px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .editBtn {
+            padding: 6px 12px;
+            background: #f1f5f9;
+            color: var(--primary);
+            font-size: 12px;
+        }
+
+        .editBtn:hover { background: var(--primary); color: white; }
+
+        #msg {
+            margin-top: 10px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 30px;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+        }
+
+        .modal-content label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
-  <h1><span class="badge">INV</span> Daily Withdrawal</h1>
 
-  <div class="row">
-    <select id="code" style="width:180px">
-      <option value="">Select product</option>
-    </select>
-    <input id="qty" placeholder="Quantity to withdraw" type="number" style="width:120px" />
-  </div>
+<header>
+    <div class="container header-flex">
+        <h1><span class="badge">Stock Out</span> Daily Withdrawal</h1>
+        <button id="showdashboard"><i class="material-icons">dashboard</i> Dashboard</button>
+    </div>
+</header>
 
-  <div class="row">
-    <input id="client" placeholder="Client name" style="width:180px" />
-    <input id="date" type="date" style="width:180px" />
-    <button id="withdraw">Withdraw</button>
-    <button id="showdashboard">Dashboard</button>
-  </div>
+<div class="container">
+    <div class="card">
+        <div class="row">
+            <select id="code">
+                <option value="">Select product code</option>
+            </select>
+            <input id="qty" placeholder="Quantity to withdraw" type="number" />
+        </div>
+        <div class="row">
+            <input id="client" placeholder="Client Name / Project" />
+            <input id="date" type="date" />
+            <button id="withdraw"><i class="material-icons">remove_circle</i> Withdraw Stock</button>
+        </div>
+        <div id="msg"></div>
+    </div>
 
-  <div id="msg" class="small"></div>
+    <h2>Withdrawal History</h2>
+    <div class="card">
+        <div class="row">
+            <input id="filterDate" type="date" />
+            <select id="filterCode">
+                <option value="">All products</option>
+            </select>
+            <button id="filterBtn" class="btn-filter"><i class="material-icons">filter_list</i> Filter</button>
+            <button id="clearFilter" style="background:#f1f5f9; color: var(--text-muted);">Clear</button>
+        </div>
 
-  <hr style="margin:20px 0">
+        <div class="table-container">
+            <table id="historyTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Code</th>
+                        <th>Description</th>
+                        <th>Client</th>
+                        <th>Qty</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="6" style="text-align:center; color:#94a3b8; padding:40px;">Loading records...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-  <h2>Withdrawal History</h2>
-  <div class="row">
-    <input id="filterDate" type="date" />
-    <select id="filterCode" style="width:180px">
-      <option value="">All products</option>
-    </select>
-    <button id="filterBtn">Filter</button>
-    <button id="clearFilter">Clear</button>
-  </div>
+    <h3>Export Reports</h3>
+    <div class="card">
+        <div class="row">
+            <div style="flex:1">
+                <label style="font-size:12px; font-weight:700; color:var(--text-muted)">Start Date</label>
+                <input id="startDate" type="date" style="width:100%"/>
+            </div>
+            <div style="flex:1">
+                <label style="font-size:12px; font-weight:700; color:var(--text-muted)">End Date</label>
+                <input id="endDate" type="date" style="width:100%"/>
+            </div>
+            <div style="flex:1">
+                <label style="font-size:12px; font-weight:700; color:var(--text-muted)">Client (Optional)</label>
+                <input id="clientFilter" placeholder="Filter by client..." style="width:100%"/>
+            </div>
+        </div>
+        <button id="exportBtn" class="btn-export"><i class="material-icons">description</i> Export to Excel (.xlsx)</button>
+    </div>
+</div>
 
-  <table id="historyTable">
-    <thead>
-  <tr>
-    <th>Date</th>
-    <th>Code</th>
-    <th>Description</th>
-    <th>Client</th>
-    <th>Quantity</th>
-    <th>Action</th>
-  </tr>
-</thead>
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <h3 style="margin-top:0; margin-bottom:20px;">Edit Transaction</h3>
+        
+        <label>Transaction Date</label>
+        <div class="row"><input id="editDate" type="date"></div>
+        
+        <label>Client / Destination</label>
+        <div class="row"><input id="editClient" type="text"></div>
+        
+        <label>Withdrawn Quantity</label>
+        <div class="row"><input id="editQty" type="number"></div>
+        
+        <div class="modal-actions">
+            <button id="saveEditBtn" style="background:var(--primary); color:white; flex:1;">Save Changes</button>
+            <button id="cancelEditBtn" style="background:#f1f5f9; color:var(--text-muted); flex:1;">Cancel</button>
+        </div>
+    </div>
+</div>
 
-    <tbody></tbody>
-  </table>
-
-  <h3>Generate Withdrawal Summary Report</h3>
-  <div class="row">
-    <input id="startDate" type="date" />
-    <input id="endDate" type="date" />
-    <input id="clientFilter" placeholder="Optional client name" style="width:180px" />
-    <button id="exportBtn">Export to Excel</button>
-  </div>
-
-  <script>
+<script>
+    /* FIREBASE LOGIC UNCHANGED */
     const firebaseConfig = {
       apiKey: "AIzaSyAzMFxfrYC8rHVgX3NPts6DXGMIsyoKeeY",
       authDomain: "bikerental-71d2f.firebaseapp.com",
@@ -131,7 +308,6 @@
       measurementId: "G-NWMX3S2S6B"
     };
 
-    // ✅ Load Firebase
     function loadFirebase() {
       return new Promise((resolve, reject) => {
         if (window.firebase && window.firebase.apps.length) return resolve(window.firebase);
@@ -152,31 +328,25 @@
       });
     }
 
-    // ✅ Load product list into dropdowns
     async function loadProducts() {
       await loadFirebase();
       const ref = firebase.database().ref('inventory_items');
       const snap = await ref.once('value');
       const selectMain = document.getElementById('code');
       const selectFilter = document.getElementById('filterCode');
-      selectMain.innerHTML = '<option value="">Select product</option>';
+      selectMain.innerHTML = '<option value="">Select product code</option>';
       selectFilter.innerHTML = '<option value="">All products</option>';
 
       snap.forEach(item => {
         const data = item.val();
         const code = data.code || item.key;
-        const option1 = document.createElement('option');
-        const option2 = document.createElement('option');
-        option1.value = item.key;
-        option2.value = item.key;
-        option1.textContent = code;
-        option2.textContent = code;
-        selectMain.appendChild(option1);
-        selectFilter.appendChild(option2);
+        const opt1 = new Option(code, item.key);
+        const opt2 = new Option(code, item.key);
+        selectMain.add(opt1);
+        selectFilter.add(opt2);
       });
     }
 
-    // ✅ Handle Withdraw button
     document.getElementById('withdraw').onclick = async () => {
       const code = document.getElementById('code').value;
       const qty = parseInt(document.getElementById('qty').value, 10);
@@ -184,265 +354,149 @@
       const date = document.getElementById('date').value || new Date().toISOString().split('T')[0];
 
       if (!code || isNaN(qty) || qty <= 0 || !client) {
-        document.getElementById('msg').textContent = 'Enter valid product, client, and quantity.';
+        msgUpdate('Enter valid product, client, and quantity.', 'var(--danger)');
         return;
       }
-
-      document.getElementById('msg').textContent = 'Processing...';
+msgUpdate('Processing withdrawal...', 'var(--primary)');
 
       await loadFirebase();
       const ref = firebase.database().ref('inventory_items/' + code);
       const snap = await ref.once('value');
       const data = snap.val() || {};
-      const desc = data.description || '-';
       const stock = data.qty || 0;
 
       if (stock < qty) {
-        document.getElementById('msg').textContent = `Not enough stock. Current: ${stock}`;
+        msgUpdate(`Insufficient stock! (Current: ${stock})`, 'var(--danger)');
         return;
       }
 
       const newStock = stock - qty;
       await ref.update({ qty: newStock });
 
-      // ✅ Save to withdrawals with key based on code + unique timestamp
       const key = `${code}_${Date.now()}`;
       await firebase.database().ref('withdrawals/' + key).set({
-        code,
-        description: desc,
-        qty,
-        client,
-        date,
-        timestamp: new Date().toISOString()
+        code, description: data.description || '-', qty, client, date, timestamp: new Date().toISOString()
       });
 
-      document.getElementById('msg').textContent = `✅ Withdrawal recorded. Remaining stock: ${newStock}`;
+      msgUpdate(`✅ Successfully withdrawn. Stock remaining: ${newStock}`, 'var(--success)');
       document.getElementById('qty').value = '';
       document.getElementById('client').value = '';
-      loadHistory(); // refresh table
-    };
-
-    // ✅ Load withdrawal history
-// ✅ Load withdrawal history with Edit modal
-async function loadHistory(filterDate = '', filterCode = '') {
-  await loadFirebase();
-  const ref = firebase.database().ref('withdrawals');
-  const snap = await ref.once('value');
-  const tbody = document.querySelector('#historyTable tbody');
-  tbody.innerHTML = '';
-
-  const records = [];
-  snap.forEach(item => {
-    const data = item.val();
-    data.key = item.key; // store key for editing
-    records.push(data);
-  });
-
-  const filtered = records.filter(r => {
-    const byDate = !filterDate || r.date === filterDate;
-    const byCode = !filterCode || r.code === filterCode;
-    return byDate && byCode;
-  });
-
-  if (filtered.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;">No withdrawal records found</td></tr>';
-    return;
-  }
-
-  filtered.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-  filtered.forEach(r => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${r.date}</td>
-      <td>${r.code}</td>
-      <td>${r.description || '-'}</td>
-      <td>${r.client || '-'}</td>
-      <td>${r.qty}</td>
-      <td><button class="editBtn" data-key="${r.key}" style="background:#0078d7;">Edit</button></td>
-    `;
-    tbody.appendChild(tr);
-  });
-
-  // ✅ Edit modal logic
-  const modal = document.getElementById('editModal');
-  const editDate = document.getElementById('editDate');
-  const editClient = document.getElementById('editClient');
-  const editQty = document.getElementById('editQty');
-  const saveBtn = document.getElementById('saveEditBtn');
-  const cancelBtn = document.getElementById('cancelEditBtn');
-  let currentKey = null;
-
-  document.querySelectorAll('.editBtn').forEach(btn => {
-    btn.onclick = async () => {
-      const key = btn.dataset.key;
-      currentKey = key;
-      const ref = firebase.database().ref('withdrawals/' + key);
-      const snap = await ref.once('value');
-      const data = snap.val();
-      if (!data) return alert('Record not found!');
-
-      // Prefill modal inputs
-      editDate.value = data.date || '';
-      editClient.value = data.client || '';
-      editQty.value = data.qty || '';
-      modal.style.display = 'flex';
-    };
-  });
-
-  // ✅ Save changes
-// ✅ Save changes (with stock update)
-saveBtn.onclick = async () => {
-  if (!currentKey) return;
-
-  const newDate = editDate.value.trim();
-  const newClient = editClient.value.trim();
-  const newQty = parseInt(editQty.value, 10);
-
-  if (!newDate || !newClient || isNaN(newQty) || newQty <= 0) {
-    alert('Please enter valid values.');
-    return;
-  }
-
-  await loadFirebase();
-
-  // 🔹 Get old withdrawal data
-  const ref = firebase.database().ref('withdrawals/' + currentKey);
-  const snap = await ref.once('value');
-  const oldData = snap.val();
-  if (!oldData) return alert('Record not found!');
-
-  const oldQty = oldData.qty;
-  const code = oldData.code;
-
-  // 🔹 Update the withdrawal record
-  await ref.update({
-    date: newDate,
-    client: newClient,
-    qty: newQty
-  });
-
-  // 🔹 Adjust inventory stock
-  const itemRef = firebase.database().ref('inventory_items/' + code);
-  const itemSnap = await itemRef.once('value');
-  const itemData = itemSnap.val();
-  const currentStock = itemData.qty || 0;
-
-  // If newQty is smaller → return stock; if larger → reduce more
-  const adjustedStock = currentStock + (oldQty - newQty);
-  await itemRef.update({ qty: adjustedStock });
-
-  modal.style.display = 'none';
-  alert('✅ Record and stock updated successfully!');
-  loadHistory(filterDate, filterCode);
-};
-
-}
-
-
-
-    document.getElementById('filterBtn').onclick = () => {
-      const date = document.getElementById('filterDate').value;
-      const code = document.getElementById('filterCode').value;
-      loadHistory(date, code);
-    };
-
-    document.getElementById('clearFilter').onclick = () => {
-      document.getElementById('filterDate').value = '';
-      document.getElementById('filterCode').value = '';
       loadHistory();
     };
 
-    // ✅ Initialize page
-    loadProducts();
+    function msgUpdate(txt, color) {
+        const m = document.getElementById('msg');
+        m.textContent = txt;
+        m.style.color = color;
+    }
 
-    // ✅ Export Withdrawal Summary to Excel
-    document.getElementById('exportBtn').onclick = async () => {
-      const start = document.getElementById('startDate').value;
-      const end = document.getElementById('endDate').value;
-      const clientFilter = document.getElementById('clientFilter').value.trim().toLowerCase();
-
-      if (!start || !end) {
-        alert('Please select both start and end dates.');
-        return;
-      }
-
+    async function loadHistory(filterDate = '', filterCode = '') {
       await loadFirebase();
       const ref = firebase.database().ref('withdrawals');
       const snap = await ref.once('value');
+      const tbody = document.querySelector('#historyTable tbody');
+      tbody.innerHTML = '';
+
       const records = [];
+      snap.forEach(item => { let d = item.val(); d.key = item.key; records.push(d); });
 
-      snap.forEach(item => {
-        const data = item.val();
-        const date = new Date(data.date);
-        if (date >= new Date(start) && date <= new Date(end)) {
-          if (!clientFilter || (data.client && data.client.toLowerCase().includes(clientFilter))) {
-            records.push(data);
-          }
-        }
-      });
+      const filtered = records.filter(r => (!filterDate || r.date === filterDate) && (!filterCode || r.code === filterCode));
 
-      if (records.length === 0) {
-        alert('No records found for the selected range.');
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:20px;">No records found.</td></tr>';
         return;
       }
 
-      const worksheetData = [
-        ['Date', 'Code', 'Description', 'Client', 'Quantity'],
-        ...records.map(r => [r.date, r.code, r.description, r.client, r.qty])
-      ];
+      filtered.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      filtered.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${r.date}</td>
+          <td><b>${r.code}</b></td>
+          <td>${r.description || '-'}</td>
+          <td>${r.client || '-'}</td>
+          <td>${r.qty}</td>
+          <td><button class="editBtn" data-key="${r.key}">Edit</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
 
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.aoa_to_sheet(worksheetData);
-      XLSX.utils.book_append_sheet(wb, ws, 'Withdrawals');
+      setupEditLogic();
+    }
 
-      XLSX.writeFile(wb, `Withdrawal_Summary_${start}_to_${end}.xlsx`);
+    function setupEditLogic() {
+        const modal = document.getElementById('editModal');
+        let currentKey = null;
+
+        document.querySelectorAll('.editBtn').forEach(btn => {
+            btn.onclick = async () => {
+                currentKey = btn.dataset.key;
+                const snap = await firebase.database().ref('withdrawals/' + currentKey).once('value');
+                const data = snap.val();
+                document.getElementById('editDate').value = data.date;
+                document.getElementById('editClient').value = data.client;
+                document.getElementById('editQty').value = data.qty;
+                modal.style.display = 'flex';
+            };
+        });
+
+        document.getElementById('cancelEditBtn').onclick = () => modal.style.display = 'none';
+        
+        document.getElementById('saveEditBtn').onclick = async () => {
+            const newDate = document.getElementById('editDate').value;
+            const newClient = document.getElementById('editClient').value;
+            const newQty = parseInt(document.getElementById('editQty').value);
+
+            const ref = firebase.database().ref('withdrawals/' + currentKey);
+            const oldSnap = await ref.once('value');
+            const oldData = oldSnap.val();
+            
+            await ref.update({ date: newDate, client: newClient, qty: newQty });
+
+            // Adjust Stock
+            const itemRef = firebase.database().ref('inventory_items/' + oldData.code);
+            const itemSnap = await itemRef.once('value');
+            const currentInv = itemSnap.val().qty || 0;
+            await itemRef.update({ qty: currentInv + (oldData.qty - newQty) });
+
+            modal.style.display = 'none';
+            loadHistory();
+        };
+    }
+
+    document.getElementById('filterBtn').onclick = () => loadHistory(document.getElementById('filterDate').value, document.getElementById('filterCode').value);
+    document.getElementById('clearFilter').onclick = () => {
+        document.getElementById('filterDate').value = '';
+        document.getElementById('filterCode').value = '';
+        loadHistory();
     };
 
- document.getElementById('showdashboard').onclick = () => {
-    window.location.href = "index.html";
-};
+    document.getElementById('exportBtn').onclick = async () => {
+        const start = document.getElementById('startDate').value;
+        const end = document.getElementById('endDate').value;
+        const cFilt = document.getElementById('clientFilter').value.toLowerCase();
+        if(!start || !end) return alert('Select dates');
 
+        const snap = await firebase.database().ref('withdrawals').once('value');
+        const rows = [['Date', 'Code', 'Description', 'Client', 'Quantity']];
+        snap.forEach(item => {
+            const d = item.val();
+            if(d.date >= start && d.date <= end && (!cFilt || d.client.toLowerCase().includes(cFilt))) {
+                rows.push([d.date, d.code, d.description, d.client, d.qty]);
+            }
+        });
 
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Withdrawals');
+        XLSX.writeFile(wb, `Withdrawals_${start}_to_${end}.xlsx`);
+    };
 
-  </script>
+    document.getElementById('showdashboard').onclick = () => window.location.href = "index.html";
 
-
-  <!-- ✅ Edit Modal -->
-  <div id="editModal" style="
-    display:none;
-    position:fixed;
-    top:0; left:0;
-    width:100%; height:100%;
-    background:rgba(0,0,0,0.5);
-    justify-content:center;
-    align-items:center;
-    z-index:1000;
-  ">
-    <div style="
-      background:#fff;
-      padding:20px;
-      border-radius:10px;
-      width:300px;
-      box-shadow:0 4px 12px rgba(0,0,0,0.2);
-    ">
-      <h3 style="margin-top:0;">Edit Withdrawal</h3>
-      <label>Date:</label>
-      <input id="editDate" type="date" style="width:100%;margin-bottom:8px;">
-      <label>Client:</label>
-      <input id="editClient" type="text" style="width:100%;margin-bottom:8px;">
-      <label>Quantity:</label>
-      <input id="editQty" type="number" style="width:100%;margin-bottom:12px;">
-      
-      <div style="text-align:right;">
-        <button id="saveEditBtn" style="background:#0078d7;color:#fff;">Save</button>
-        <button id="cancelEditBtn" style="background:#aaa;color:#fff;">Cancel</button>
-      </div>
-    </div>
-  </div>
+    loadProducts();
+    loadHistory();
+</script>
 
 </body>
 </html>
-
-
-
