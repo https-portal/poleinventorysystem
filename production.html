@@ -255,7 +255,7 @@
     <h3 style="margin-bottom:20px; font-weight:800; display:flex; align-items:center; gap:8px;">
       <i class="material-icons" style="color:var(--primary)">edit</i> Edit Record
     </h3>
-    <div class="input-group" style="margin-bottom:15px;"><label>Date</label><input type="date" id="editDate" disabled></div>
+ <div class="input-group" style="margin-bottom:15px;"><label>Date</label><input type="date" id="editDate"></div>
     <div class="input-group" style="margin-bottom:15px;"><label>Code</label><input type="text" id="editCode" disabled></div>
     <div class="input-group" style="margin-bottom:15px;"><label>Quantity</label><input type="number" id="editQty"></div>
     
@@ -410,13 +410,13 @@
           <td style="color:var(--text-muted)">${r.description}</td>
           <td style="font-weight:600;">${r.qty}</td>
           <td class="group-total-cell">${index === 0 ? group.total : ''}</td>
-          <td><button class="editBtn btn-secondary" style="padding: 6px 12px; font-size: 12px;"
-              data-date="${r.date}" 
-              data-code="${r.code}" 
-              data-desc="${r.description}" 
-              data-qty="${r.qty}">
-              <i class="material-icons" style="font-size:16px;">edit</i> Edit
-          </button></td>
+        // Inside loadHistoryRange, update the button HTML:
+<td><button class="editBtn btn-secondary" style="padding: 6px 12px; font-size: 12px;" 
+    data-date="${r.date}" 
+    data-code="${r.code}" 
+    data-qty="${r.qty}" 
+    data-id="${entry.key}"> <i class="material-icons" style="font-size:16px;">edit</i> Edit
+</button></td>
         `;
         tbody.appendChild(tr);
       });
