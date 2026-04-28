@@ -370,15 +370,17 @@
     snap.forEach(dateNode => {
       const date = dateNode.key;
       if ((startDate && date < startDate) || (endDate && date > endDate)) return;
-      dateNode.forEach(entry => {
-        const data = entry.val();
-        records.push({
-          date,
-          code: data.code,
-          description: data.description || '-',
-          qty: parseInt(data.qty) || 0
-        });
-      });
+     // Locate this section in loadHistoryRange and add 'key: entry.key'
+dateNode.forEach(entry => {
+  const data = entry.val();
+  records.push({
+    date,
+    code: data.code,
+    description: data.description || '-',
+    qty: parseInt(data.qty) || 0,
+    key: entry.key // ADD THIS LINE
+  });
+});
     });
 
     const filtered = records.filter(r => !filterCode || r.code === filterCode);
@@ -401,30 +403,31 @@
       grouped[r.code].total += r.qty;
     });
 
-    for (const [code, group] of Object.entries(grouped)) {
-      group.items.forEach((r, index) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${r.date}</td>
-          <td><span style="font-weight:700;">${r.code}</span></td>
-          <td style="color:var(--text-muted)">${r.description}</td>
-          <td style="font-weight:600;">${r.qty}</td>
-          <td class="group-total-cell">${index === 0 ? group.total : ''}</td>
-        // Inside loadHistoryRange, update the button HTML:
-<td><button class="editBtn btn-secondary" style="padding: 6px 12px; font-size: 12px;" 
-    data-date="${r.date}" 
-    data-code="${r.code}" 
-    data-qty="${r.qty}" 
-    data-id="${entry.key}"> <i class="material-icons" style="font-size:16px;">edit</i> Edit
-</button></td>
-        `;
-        tbody.appendChild(tr);
-      });
+for (const [code, group] of Object.entries(grouped)) {
+  group.items.forEach((r, index) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${r.date}</td>
+      <td><span style="font-weight:700;">${r.code}</span></td>
+      <td style="color:var(--text-muted)">${r.description}</td>
+      <td style="font-weight:600;">${r.qty}</td>
+      <td class="group-total-cell">${index === 0 ? group.total : ''}</td>
+      <td>
+        <button class="editBtn btn-secondary" style="padding: 6px 12px; font-size: 12px;" 
+            data-date="${r.date}" 
+            data-code="${r.code}" 
+            data-qty="${r.qty}" 
+            data-id="${r.key}"> <i class="material-icons" style="font-size:16px;">edit</i> Edit
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
 
-      const sep = document.createElement('tr');
-      sep.innerHTML = `<td colspan="6" style="background:#f1f5f9; padding:4px; border:none;"></td>`;
-      tbody.appendChild(sep);
-    }
+  const sep = document.createElement('tr');
+  sep.innerHTML = `<td colspan="6" style="background:#f1f5f9; padding:4px; border:none;"></td>`;
+  tbody.appendChild(sep);
+}
   }
 
   document.getElementById('filterBtn').onclick = () => {
