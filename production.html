@@ -536,42 +536,67 @@
   };
 
   let currentEdit = {};
-  document.addEventListener("click", (e) => {
+// 1. Open Modal and capture current state
+document.addEventListener("click", (e) => {
     const btn = e.target.closest(".editBtn");
     if (btn) {
-      currentEdit = { date: btn.dataset.date, code: btn.dataset.code, oldQty: parseInt(btn.dataset.qty) };
-      document.getElementById("editDate").value = currentEdit.date;
-      document.getElementById("editCode").value = currentEdit.code;
-      document.getElementById("editQty").value = currentEdit.oldQty;
-      document.getElementById("editModal").style.display = "flex";
+        currentEdit = { 
+            date: btn.dataset.date, 
+            code: btn.dataset.code, 
+            oldQty: parseInt(btn.dataset.qty),
+            key: btn.dataset.id // Store the unique Firebase key
+        };
+        document.getElementById("editDate").value = currentEdit.date;
+        document.getElementById("editCode").value = currentEdit.code;
+        document.getElementById("editQty").value = currentEdit.oldQty;
+        document.getElementById("editModal").style.display = "flex";
     }
-  });
+});
 
-  document.getElementById("cancelEdit").onclick = () => document.getElementById("editModal").style.display = "none";
-
-  document.getElementById("saveEdit").onclick = async () => {
+// 2. Save logic with Date and Qty handling
+document.getElementById("saveEdit").onclick = async () => {
     const newQty = parseInt(document.getElementById("editQty").value);
-    if (isNaN(newQty) || newQty < 0) return alert("Invalid quantity.");
-    if (newQty === currentEdit.oldQty) return document.getElementById("editModal").style.display = "none";
+    const newDate = document.getElementById("editDate").value;
+
+    if (isNaN(newQty) || newQty < 0 || !newDate) return alert("Invalid input.");
     
+    // If nothing changed, just close
+    if (newQty === currentEdit.oldQty && newDate === currentEdit.date) {
+        document.getElementById("editModal").style.display = "none";
+        return;
+    }
+
     if (!confirm("Save changes and adjust stock?")) return;
 
     await loadFirebase();
-    const prodRef = firebase.database().ref("daily_production/" + currentEdit.date);
-    const snap = await prodRef.once("value");
-    let key = null;
-    snap.forEach(e => { if (e.val().code === currentEdit.code && parseInt(e.val().qty) === currentEdit.oldQty) key = e.key; });
+    const db = firebase.database();
+    const invRef = db.ref("inventory_items/" + currentEdit.code);
+    
+    // 1. Update Inventory Stock (Old stock out, new stock in)
+    const invSnap = await invRef.once("value");
+    const currentStock = invSnap.val().qty || 0;
+    await invRef.update({ qty: currentStock - currentEdit.oldQty + newQty });
 
-    if (key) {
-      const invRef = firebase.database().ref("inventory_items/" + currentEdit.code);
-      const invSnap = await invRef.once("value");
-      await invRef.update({ qty: (invSnap.val().qty || 0) - currentEdit.oldQty + newQty });
-      await prodRef.child(key).update({ qty: newQty });
-      alert("✅ Updated successfully.");
-      document.getElementById("editModal").style.display = "none";
-      document.getElementById('filterBtn').click();
+    // 2. Handle Production History
+    if (newDate === currentEdit.date) {
+        // Just update quantity if date is the same
+        await db.ref(`daily_production/${currentEdit.date}/${currentEdit.key}`).update({ qty: newQty });
+    } else {
+        // If date changed: Get old data, push to new date, delete old record
+        const oldRecRef = db.ref(`daily_production/${currentEdit.date}/${currentEdit.key}`);
+        const oldSnap = await oldRecRef.once("value");
+        const recordData = oldSnap.val();
+        
+        recordData.qty = newQty; // Update with new quantity
+        
+        await db.ref(`daily_production/${newDate}`).push(recordData);
+        await oldRecRef.remove();
     }
-  };
+
+    alert("✅ Record and Stock updated successfully.");
+    document.getElementById("editModal").style.display = "none";
+    document.getElementById('filterBtn').click(); // Refresh table
+};
 
   loadProducts();
 </script>
