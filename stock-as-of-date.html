@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Stock as of Date | EDL LIN</title>
+  
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #10b981; /* Emerald Green */
+      --primary-dark: #065f46;
+      --bg-body: #f8fafc;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+    
+    body { background: var(--bg-body); color: var(--text-main); padding: 20px; line-height: 1.5; }
+    .container { max-width: 1000px; margin: 0 auto; }
+
+    /* --- Header --- */
+    .header-area {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .logo-section h1 {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* --- Cards --- */
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: var(--card-shadow);
+      margin-bottom: 24px;
+      border: 1px solid #f1f5f9;
+    }
+
+    .card h2 {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* --- Controls --- */
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      align-items: flex-end;
+    }
+
+    .input-group { display: flex; flex-direction: column; gap: 6px; }
+    .input-group label { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+
+    input, select {
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1.5px solid #e2e8f0;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1); }
+
+    /* --- Buttons --- */
+    button {
+      padding: 12px 20px;
+      border-radius: 12px;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .btn-outline { background: transparent; border: 1.5px solid #e2e8f0; color: var(--text-main); }
+    .btn-outline:hover { background: #f8fafc; }
+
+    /* --- Table --- */
+    .table-container { overflow-x: auto; margin-top: 10px; }
+    table { width: 100%; border-collapse: collapse; min-width: 700px; }
+    
+    th {
+      background: #f8fafc;
+      padding: 14px 16px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    td { padding: 16px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+
+    .badge-ready {
+      background: #ecfdf5;
+      color: #065f46;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-weight: 800;
+      display: inline-block;
+    }
+
+    /* --- Responsive --- */
+    @media (max-width: 768px) {
+      .header-area { flex-direction: column; gap: 15px; align-items: flex-start; }
+      .controls-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header-area">
+    <div class="logo-section">
+      <h1><i class="material-icons">date_range</i> Stock as of Date</h1>
+    </div>
+    <button class="btn-outline" onclick="window.location.href='production.html'"><i class="material-icons">arrow_back</i> Back to Production</button>
+  </div>
+
+  <div class="card">
+    <h2><i class="material-icons" style="color:var(--primary)">event</i> Select Date to View Stock</h2>
+    <div class="controls-grid">
+      <div class="input-group">
+        <label>Select Date</label>
+        <input type="date" id="datePicker">
+      </div>
+      <button class="btn-primary" id="showBtn"><i class="material-icons">visibility</i> Show Stock as of Date</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+      <h2><i class="material-icons" style="color:var(--primary)">inventory_2</i> Stock as of Selected Date</h2>
+      <div class="input-group" style="margin:0;">
+        <label>Search Table</label>
+        <input type="text" id="tableSearch" placeholder="Search Code/Desc..." onkeyup="filterTable()">
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table id="stockTable">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Description</th>
+            <th>Stock as of Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="3" style="text-align:center; padding:40px; color:var(--text-muted)">Please select a date above to load stock data.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAzMFxfrYC8rHVgX3NPts6DXGMIsyoKeeY",
+      authDomain: "bikerental-71d2f.firebaseapp.com",
+      databaseURL: "https://bikerental-71d2f-default-rtdb.firebaseio.com",
+      projectId: "bikerental-71d2f",
+      storageBucket: "bikerental-71d2f.firebasestorage.app",
+      messagingSenderId: "349527647193",
+      appId: "1:349527647193:web:8db12034619c8e423b2fc8",
+      measurementId: "G-NWMX3S2S6B"
+    };
+
+    let cachedInventory = {};
+    let cachedTableData = [];
+
+    async function loadFirebase() {
+      return new Promise((resolve, reject) => {
+        if (window.firebase && window.firebase.apps.length) return resolve(window.firebase);
+        const s1 = document.createElement('script');
+        s1.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
+        s1.onload = () => {
+          const s2 = document.createElement('script');
+          s2.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js';
+          s2.onload = () => {
+            firebase.initializeApp(firebaseConfig);
+            resolve(firebase);
+          };
+          s2.onerror = reject;
+          document.head.appendChild(s2);
+        };
+        s1.onerror = reject;
+        document.head.appendChild(s1);
+      });
+    }
+
+    async function showStockAsOfDate(dateInput) {
+      await loadFirebase();
+      if (!cachedInventory || Object.keys(cachedInventory).length === 0) {
+        const db = firebase.database();
+        const invRef = db.ref("inventory_items");
+        const invSnap = await invRef.once("value");
+        cachedInventory = invSnap.val() || {};
+      }
+      const db = firebase.database();
+      const prodRef = db.ref("daily_production");
+      const selectedDate = new Date(dateInput);
+      const prodSnap = await prodRef.once("value");
+      const allProduction = prodSnap.val() || {};
+
+      const tbody = document.querySelector("#stockTable tbody");
+      tbody.innerHTML = "";
+      cachedTableData = [];
+
+      for (const [code, item] of Object.entries(cachedInventory)) {
+        const desc = item.description || "-";
+        const currentStock = item.qty || 0;
+        let productionAfterDate = 0;
+
+        for (const dateKey in allProduction) {
+          const prodDate = new Date(dateKey);
+          const dailyProd = allProduction[dateKey];
+          
+          for (const key in dailyProd) {
+            if (dailyProd[key].code === code) {
+              const qty = parseInt(dailyProd[key].qty) || 0;
+              if (prodDate > selectedDate) {
+                productionAfterDate += qty;
+              }
+            }
+          }
+        }
+
+        const totalStockAsOfDate = currentStock - productionAfterDate;
+
+        cachedTableData.push({ code, desc, stockAsOfDate: totalStockAsOfDate });
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td style="font-weight:700;">${code}</td>
+          <td style="color:var(--text-muted)">${desc}</td>
+          <td>${totalStockAsOfDate}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    function filterTable() {
+      const input = document.getElementById("tableSearch").value.toUpperCase();
+      const rows = document.querySelector("#stockTable tbody").getElementsByTagName("tr");
+      for (let i = 0; i < rows.length; i++) {
+        const txt = rows[i].textContent || rows[i].innerText;
+        rows[i].style.display = txt.toUpperCase().indexOf(input) > -1 ? "" : "none";
+      }
+    }
+
+    document.getElementById("showBtn").onclick = () => {
+      const date = document.getElementById("datePicker").value;
+      if (!date) return alert("Select a date.");
+      showStockAsOfDate(date);
+    };
+</script>
+
+</body>
+</html>
