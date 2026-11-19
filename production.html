@@ -124,6 +124,49 @@
     .btn-secondary { background: #f1f5f9; color: var(--text-main); }
     .btn-dark { background: var(--text-main); color: white; }
 
+    .upload-status {
+      display: none;
+      margin: 16px 0;
+      padding: 14px 16px;
+      border-radius: 12px;
+      background: #eff6ff;
+      color: var(--primary-dark);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .upload-status.visible { display: block; }
+    .upload-status.error { background: #fef2f2; color: var(--danger); }
+    .upload-status.success { background: #ecfdf5; color: #047857; }
+
+    .upload-status-message { display: flex; align-items: center; gap: 8px; }
+    .upload-spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(59, 130, 246, 0.25);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: upload-spin 0.8s linear infinite;
+    }
+
+    @keyframes upload-spin { to { transform: rotate(360deg); } }
+
+    .upload-progress-track {
+      height: 8px;
+      margin-top: 10px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(59, 130, 246, 0.15);
+    }
+
+    .upload-progress-bar {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--primary);
+      transition: width 0.2s ease;
+    }
+
     /* --- Tables --- */
     .table-responsive { overflow-x: auto; margin-top: 10px; border-radius: 12px; }
     
@@ -207,6 +250,15 @@
       <input type="file" id="fileUpload" accept=".xlsx, .xls">
       <button class="btn-secondary" id="previewExcel"><i class="material-icons">visibility</i> Preview</button>
       <button class="btn-success" id="saveExcel"><i class="material-icons">cloud_upload</i> Upload Data</button>
+    </div>
+    <div id="uploadStatus" class="upload-status" role="status" aria-live="polite" aria-hidden="true">
+      <div class="upload-status-message">
+        <span id="uploadSpinner" class="upload-spinner" aria-hidden="true"></span>
+        <span id="uploadStatusText">Preparing upload...</span>
+      </div>
+      <div id="uploadProgressTrack" class="upload-progress-track" role="progressbar" aria-label="Excel upload progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div id="uploadProgressBar" class="upload-progress-bar"></div>
+      </div>
     </div>
     <div class="table-responsive">
       <table id="excelPreviewTable">
@@ -492,6 +544,23 @@ for (const [code, group] of Object.entries(grouped)) {
   };
 
   let excelData = [];
+  let isUploadingExcel = false;
+
+  function setUploadStatus(message, state = 'loading', progress = 0) {
+    const status = document.getElementById('uploadStatus');
+    const spinner = document.getElementById('uploadSpinner');
+    const progressTrack = document.getElementById('uploadProgressTrack');
+    const progressBar = document.getElementById('uploadProgressBar');
+
+    status.className = `upload-status visible${state === 'error' || state === 'success' ? ` ${state}` : ''}`;
+    status.setAttribute('aria-hidden', 'false');
+    document.getElementById('uploadStatusText').textContent = message;
+    spinner.style.display = state === 'loading' ? 'inline-block' : 'none';
+    progressTrack.style.display = state === 'loading' ? 'block' : 'none';
+    progressTrack.setAttribute('aria-valuenow', String(progress));
+    progressBar.style.width = `${progress}%`;
+  }
+
   document.getElementById('previewExcel').onclick = async () => {
     const fileInput = document.getElementById('fileUpload');
     if (!fileInput.files.length) { alert("Select an Excel file."); return; }
@@ -526,17 +595,53 @@ for (const [code, group] of Object.entries(grouped)) {
   };
 
   document.getElementById('saveExcel').onclick = async () => {
+    if (isUploadingExcel) return;
     if (!excelData.length) { alert("Preview first."); return; }
-    await loadFirebase();
-    const ref = firebase.database().ref('inventory_items');
-    for (let row of excelData) {
-      if (!row.valid) continue;
-      const snap = await ref.child(row.code).once('value');
-      await ref.child(row.code).update({ qty: (snap.val().qty || 0) + row.qty });
-      await firebase.database().ref(`daily_production/${row.date}`).push().set({ code: row.code, description: row.description, qty: row.qty, timestamp: new Date().toISOString() });
+    const validRows = excelData.filter(row => row.valid);
+    if (!validRows.length) { alert("There are no valid rows to upload."); return; }
+
+    isUploadingExcel = true;
+    const uploadButton = document.getElementById('saveExcel');
+    const previewButton = document.getElementById('previewExcel');
+    const fileInput = document.getElementById('fileUpload');
+    uploadButton.disabled = true;
+    previewButton.disabled = true;
+    fileInput.disabled = true;
+
+    try {
+      setUploadStatus(`Uploading 0 of ${validRows.length} records...`);
+      await loadFirebase();
+      const ref = firebase.database().ref('inventory_items');
+      let completed = 0;
+
+      for (const row of validRows) {
+        const snap = await ref.child(row.code).once('value');
+        await ref.child(row.code).update({ qty: ((snap.val() && snap.val().qty) || 0) + row.qty });
+        await firebase.database().ref(`daily_production/${row.date}`).push().set({
+          code: row.code,
+          description: row.description,
+          qty: row.qty,
+          timestamp: new Date().toISOString()
+        });
+        completed += 1;
+        const progress = Math.round((completed / validRows.length) * 100);
+        setUploadStatus(`Uploading ${completed} of ${validRows.length} records...`, 'loading', progress);
+      }
+
+      excelData = [];
+      document.querySelector('#excelPreviewTable tbody').innerHTML = '';
+      setUploadStatus(`Successfully uploaded ${completed} records.`, 'success', 100);
+      document.getElementById('msg').innerHTML = `<span style="color:var(--success)">✅ Successfully uploaded ${completed} records.</span>`;
+    } catch (error) {
+      console.error('Excel upload failed:', error);
+      setUploadStatus('Upload failed. Check the saved records before retrying to avoid duplicates.', 'error');
+      document.getElementById('msg').innerHTML = `<span style="color:var(--danger)">Upload failed. Check the upload status before retrying.</span>`;
+    } finally {
+      isUploadingExcel = false;
+      uploadButton.disabled = false;
+      previewButton.disabled = false;
+      fileInput.disabled = false;
     }
-    document.getElementById('msg').innerHTML = `<span style="color:var(--success)">✅ Successfully uploaded.</span>`;
-    excelData = []; document.querySelector('#excelPreviewTable tbody').innerHTML = '';
   };
 
   let currentEdit = {};

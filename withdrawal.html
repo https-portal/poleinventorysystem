@@ -225,8 +225,28 @@
         <div id="msg"></div>
     </div>
 
+    <h3>Export Reports</h3>
+    <div class="card">
+        <div class="row">
+            <div style="flex:1">
+                <label style="font-size:12px; font-weight:700; color:var(--text-muted)">Start Date</label>
+                <input id="startDate" type="date" style="width:100%"/>
+            </div>
+            <div style="flex:1">
+                <label style="font-size:12px; font-weight:700; color:var(--text-muted)">End Date</label>
+                <input id="endDate" type="date" style="width:100%"/>
+            </div>
+            <div style="flex:1">
+                <label style="font-size:12px; font-weight:700; color:var(--text-muted)">Client (Optional)</label>
+                <input id="clientFilter" placeholder="Filter by client..." style="width:100%"/>
+            </div>
+        </div>
+        <button id="exportBtn" class="btn-export"><i class="material-icons">description</i> Export to Excel (.xlsx)</button>
+    </div>
+
     <h2>Withdrawal History</h2>
     <div class="card">
+        <p id="historyPeriod" style="margin-bottom:14px; color:var(--text-muted); font-size:13px; font-weight:600;"></p>
         <div class="row">
             <input id="filterDate" type="date" />
             <select id="filterCode">
@@ -253,25 +273,6 @@
                 </tbody>
             </table>
         </div>
-    </div>
-
-    <h3>Export Reports</h3>
-    <div class="card">
-        <div class="row">
-            <div style="flex:1">
-                <label style="font-size:12px; font-weight:700; color:var(--text-muted)">Start Date</label>
-                <input id="startDate" type="date" style="width:100%"/>
-            </div>
-            <div style="flex:1">
-                <label style="font-size:12px; font-weight:700; color:var(--text-muted)">End Date</label>
-                <input id="endDate" type="date" style="width:100%"/>
-            </div>
-            <div style="flex:1">
-                <label style="font-size:12px; font-weight:700; color:var(--text-muted)">Client (Optional)</label>
-                <input id="clientFilter" placeholder="Filter by client..." style="width:100%"/>
-            </div>
-        </div>
-        <button id="exportBtn" class="btn-export"><i class="material-icons">description</i> Export to Excel (.xlsx)</button>
     </div>
 </div>
 
@@ -390,7 +391,24 @@ msgUpdate('Processing withdrawal...', 'var(--primary)');
         m.style.color = color;
     }
 
-    async function loadHistory(filterDate = '', filterCode = '') {
+        function formatLocalDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function getCurrentWeekRange() {
+            const today = new Date();
+            const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            const dayOfWeek = (start.getDay() + 6) % 7;
+            start.setDate(start.getDate() - dayOfWeek);
+            const end = new Date(start);
+            end.setDate(start.getDate() + 6);
+            return { start: formatLocalDate(start), end: formatLocalDate(end) };
+        }
+
+        async function loadHistory(filterDate = '', filterCode = '') {
       await loadFirebase();
       const ref = firebase.database().ref('withdrawals');
       const snap = await ref.once('value');
@@ -400,7 +418,15 @@ msgUpdate('Processing withdrawal...', 'var(--primary)');
       const records = [];
       snap.forEach(item => { let d = item.val(); d.key = item.key; records.push(d); });
 
-      const filtered = records.filter(r => (!filterDate || r.date === filterDate) && (!filterCode || r.code === filterCode));
+            const week = getCurrentWeekRange();
+            const periodLabel = document.getElementById('historyPeriod');
+            periodLabel.textContent = filterDate
+                ? `Showing withdrawals for ${filterDate}.`
+                : `Showing this week's withdrawals (${week.start} to ${week.end}), newest first.`;
+            const filtered = records.filter(r =>
+                (filterDate ? r.date === filterDate : r.date >= week.start && r.date <= week.end) &&
+                (!filterCode || r.code === filterCode)
+            );
 
       if (filtered.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:20px;">No records found.</td></tr>';
